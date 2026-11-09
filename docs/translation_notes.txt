@@ -1,0 +1,11 @@
+bengali: 
+issue warrant as পরোয়ানা জারি, 
+number as সংখ্যা, 
+branch as শাখা, 
+information/details as তথ্য,
+step as ধাপ
+sorry as দুঃখিত
+warning as সতর্কবার্তা
+local as স্থানীয়
+registered as নথিভুক্ত
+airport as বিমানবন্দরে (this is ok but still better to avoid)

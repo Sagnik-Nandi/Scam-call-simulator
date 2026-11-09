@@ -1,0 +1,111 @@
+lang,intent,text
+en,comply,yes sir
+en,comply,okay tell me what to do
+en,comply,alright I will cooperate
+en,comply,what should I do
+en,comply,please help me I did nothing
+en,comply,yes officer I am listening
+en,comply,sure go ahead
+en,comply,ok sir
+en,comply,I understand
+en,comply,please do not arrest me
+en,refuse,no I am not giving you the code
+en,refuse,this is a scam
+en,refuse,I will call the police
+en,refuse,I won't tell you anything
+en,refuse,I will call my son first
+en,refuse,never
+en,refuse,leave me alone
+en,refuse,you are a fraud
+en,refuse,I am not sharing my otp
+en,refuse,stop calling me
+en,confused,what
+en,confused,I don't understand
+en,confused,can you repeat that
+en,confused,which code
+en,confused,sorry what parcel
+en,confused,what do you mean
+en,confused,say that again
+en,confused,pardon
+en,hangup,I am hanging up
+en,hangup,bye
+en,hangup,I'm cutting the call
+en,hangup,goodbye
+en,hangup,I am ending this call now
+hi,comply,जी सर
+hi,comply,ठीक है बताइए
+hi,comply,हाँ मैं सुन रहा हूँ
+hi,comply,मैं समझ गया क्या करना है
+hi,comply,haan ji
+hi,comply,theek hai batao
+hi,refuse,नहीं मैं कोड नहीं बताऊंगा
+hi,refuse,यह फ्रॉड है
+hi,refuse,मैं पुलिस को फोन करूँगा
+hi,refuse,कभी नहीं
+hi,refuse,nahi dunga
+hi,refuse,yeh scam hai
+hi,confused,क्या
+hi,confused,मुझे समझ नहीं आया
+hi,confused,फिर से बोलिए
+hi,confused,samajh nahi aaya
+hi,hangup,मैं फोन रख रहा हूँ
+hi,hangup,मैं कॉल काट रही हूँ
+hi,hangup,bye
+hi,hangup,phone rakh raha hoon
+bn,comply,হ্যাঁ বলুন
+bn,comply,ঠিক আছে
+bn,comply,আচ্ছা আমি শুনছি
+bn,comply,কী করতে হবে
+bn,comply,haan bolun
+bn,refuse,না আমি কোড দেব না
+bn,refuse,এটা প্রতারণা
+bn,refuse,আমি পুলিশকে ফোন করব
+bn,refuse,কখনো না
+bn,refuse,এটা ভুয়ো কল
+bn,confused,বুঝলাম না
+bn,confused,আবার বলুন
+bn,confused,কোন কোড
+bn,hangup,আমি ফোন রাখছি
+bn,hangup,আমি কল কেটে দিচ্ছি
+bn,hangup,বাই
+en,ask_identity,who is this
+en,ask_identity,what is your name
+en,ask_identity,show me your id
+en,ask_identity,which department are you from
+en,ask_location,where are you from
+en,ask_location,where are you calling from
+en,ask_location,which police station
+en,ask_proof,can you prove it
+en,ask_proof,show me the warrant
+en,ask_proof,how do i know you are real
+en,ask_info,do you know my name
+en,ask_info,how did you get my number
+en,stall,wait a minute
+en,stall,hold on let me think
+en,scared,i am scared
+en,scared,i have children please sir
+hi,ask_identity,आप कौन बोल रहे हैं
+hi,ask_identity,आपका नाम क्या है
+hi,ask_identity,aap kaun
+hi,ask_location,आप कहाँ से बोल रहे हैं
+hi,ask_location,कौन सा थाना
+hi,ask_proof,सबूत दिखाइए
+hi,ask_proof,मैं कैसे जानूँ
+hi,ask_info,आप मेरा नाम जानते हैं
+hi,ask_info,मेरा नंबर कहाँ से मिला
+hi,stall,एक मिनट रुकिए
+hi,scared,मुझे डर लग रहा है
+bn,ask_identity,আপনি কে
+bn,ask_identity,আপনার নাম কী
+bn,ask_location,আপনি কোথা থেকে বলছেন
+bn,ask_location,কোন থানা
+bn,ask_proof,প্রমাণ দেখান
+bn,ask_proof,ওয়ারেন্ট দেখান
+bn,ask_info,আমার নাম জানেন
+bn,ask_info,আমার নম্বর কীভাবে পেলেন
+bn,stall,এক মিনিট
+bn,scared,আমার ভয় করছে
+hi,comply,कृपया बताइए
+hi,comply,please batao
+bn,comply,প্লিজ বলুন
+bn,comply,দয়া করে বলুন

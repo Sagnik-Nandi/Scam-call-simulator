@@ -1,0 +1,164 @@
+{
+  "id": "digital_arrest",
+  "title": "Digital arrest call",
+  "start": "greet",
+  "silence_limit": 2,
+  "interrupt_max_in_row": 3,
+  "unknown_retries": 1,
+  "clarify_limit": 1,
+  "nodes": {
+    "greet": {
+      "tactics": ["authority"],
+      "on": {
+        "comply": "parcel",
+        "refuse": "reassure_doubt",
+        "confused": "@clarify",
+        "unknown": "parcel",
+        "default": "parcel"
+      }
+    },
+    "parcel": {
+      "tactics": ["fear", "authority"],
+      "on": {
+        "comply": "reassure",
+        "refuse": "reassure_doubt",
+        "confused": "@clarify",
+        "default": "reassure"
+      }
+    },
+    "reassure": {
+      "tactics": ["false_help"],
+      "on": {
+        "comply": "isolate",
+        "refuse": "reassure_doubt",
+        "confused": "@clarify",
+        "default": "isolate"
+      }
+    },
+    "isolate": {
+      "tactics": ["secrecy", "false_help"],
+      "on": {
+        "comply": "verify",
+        "refuse": "reassure_doubt",
+        "confused": "@clarify",
+        "default": "verify"
+      }
+    },
+    "verify": {
+      "tactics": ["authority"],
+      "on": {
+        "comply": "otp_demand",
+        "refuse": "reassure_doubt",
+        "confused": "@clarify",
+        "default": "otp_demand"
+      }
+    },
+    "reassure_doubt": {
+      "tactics": ["false_help"],
+      "remember": true,
+      "max_visits": 1,
+      "on_exhausted": "pushback",
+      "on": {
+        "comply": "@resume",
+        "refuse": "pushback",
+        "confused": "@clarify",
+        "default": "@resume"
+      }
+    },
+    "pushback": {
+      "tactics": ["fear", "secrecy"],
+      "on": {
+        "comply": "@resume",
+        "refuse": "final_early",
+        "confused": "@clarify",
+        "default": "@resume"
+      },
+      "remember": true
+    },
+    "final_early": {
+      "tactics": ["urgency", "fear"],
+      "max_visits": 1,
+      "on_exhausted": "end_win",
+      "on": {
+        "comply": "@resume",
+        "refuse": "end_win",
+        "confused": "@clarify",
+        "default": "end_win"
+      },
+      "remember": true
+    },
+    "otp_demand": {
+      "tactics": ["credential_request"],
+      "show_otp": true,
+      "on": {
+        "leak": "end_lose",
+        "comply": "@clarify",
+        "refuse": "otp_soft",
+        "confused": "@clarify",
+        "default": "otp_soft"
+      }
+    },
+    "otp_soft": {
+      "tactics": ["false_help", "credential_request"],
+      "show_otp": true,
+      "on": {
+        "leak": "end_lose",
+        "comply": "@clarify",
+        "refuse": "otp_pressure",
+        "confused": "@clarify",
+        "default": "otp_pressure"
+      }
+    },
+    "otp_pressure": {
+      "tactics": ["fear", "secrecy", "credential_request"],
+      "show_otp": true,
+      "on": {
+        "leak": "end_lose",
+        "comply": "@clarify",
+        "refuse": "final_warning",
+        "confused": "@clarify",
+        "default": "final_warning"
+      }
+    },
+    "final_warning": {
+      "tactics": ["urgency", "fear"],
+      "show_otp": true,
+      "on": {
+        "leak": "end_lose",
+        "comply": "@clarify",
+        "refuse": "end_win",
+        "confused": "@clarify",
+        "default": "end_win"
+      }
+    },
+    "end_lose": {
+      "terminal": "lose",
+      "tactics": []
+    },
+    "end_win": {
+      "terminal": "win",
+      "tactics": []
+    }
+  },
+  "interrupts": {
+    "ask_identity": {
+      "tactics": ["authority"]
+    },
+    "ask_location": {
+      "tactics": ["authority"]
+    },
+    "ask_proof": {
+      "tactics": ["authority", "urgency"]
+    },
+    "ask_info": {
+      "tactics": ["authority", "fear"]
+    },
+    "stall": {
+      "tactics": ["urgency"]
+    },
+    "scared": {
+      "tactics": ["false_help"]
+    }
+  },
+  "stall_limit": 6
+}

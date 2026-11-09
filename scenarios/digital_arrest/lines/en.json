@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "language": "en",
+    "status": "draft",
+    "note": "Base script. Facts in debrief.facts must be checked against docs/SOURCES.md before release."
+  },
+  "lines": {
+    "greet": "Hello. This is Inspector Verma from the cyber crime branch, New Delhi. Am I speaking with {name}? I am calling about a case that has been registered in your name.",
+    "parcel": "A parcel booked in the name of {name}, linked to a mobile number ending {last4}, was intercepted at the airport. It contained fake passports and banned drugs. Your phone number and bank account are connected to this case, and a warrant has been issued in your name.",
+    "reassure": "Please don't panic. I am calling you before any action is taken because I want to help you. If you cooperate and follow the steps I tell you, we can clear your name today.",
+    "isolate": "One important thing. This case file is confidential, so please do not discuss it with anyone until it is closed, not even your family or your bank. If the details get out, it can complicate your case and I will not be able to help you. Please stay on this call while we complete the steps.",
+    "verify": "First I need to confirm that you are the right person. An OTP is being sent to your mobile number right now. Please keep your phone with you and stay on the line.",
+    "otp_demand": "The OTP should have reached you by now. Please read out all the digits, so I can complete your verification and close this for you.",
+    "otp.clarify": "The OTP that came to your phone by SMS. Please check your messages and read the digits to me.",
+    "reassure_doubt": "I understand your concern. I am not calling to harm you, I am calling to help you avoid an arrest. Let us finish the verification, and this will be over soon.",
+    "pushback": "Listen carefully. If you hang up or call anyone, an obstruction charge will be added to your case, and the police will come to your address. I am trying to prevent that, so please cooperate.",
+    "final_early": "This is your last chance to cooperate. If you hang up now, the arrest order will go ahead.",
+    "otp_soft": "I understand that sharing an OTP can feel risky. But this OTP is only to confirm your identity, and without it I cannot close your case. Please read it out so that I can help you.",
+    "otp_pressure": "Why are you hesitating? Only guilty people refuse. If you do not read the OTP, I will have to send officers, and your family and neighbours will find out. Read the OTP now.",
+    "final_warning": "This is your final warning. The arrest order is ready for signature. Read the OTP within the next minute, or you will be arrested and your accounts will be frozen.",
+    "end_lose": "Thank you. I have the OTP. Your verification is complete.",
+    "end_win": "Fine. The case will now go ahead without your cooperation.",
+    "generic.clarify": "Let me put it simply. A parcel with illegal items was found under your name. I want to help you clear it, but I need your cooperation.",
+    "generic.silence": "Hello? Can you hear me? Please stay on the line.",
+    "generic.unknown": "Sorry, I did not catch that. Please answer my question. Can you hear me?",
+    "ask_identity.1": "My name is Inspector Verma, badge number four four seven one, cyber crime branch, New Delhi.",
+    "ask_identity.2": "I have already given you my name and badge number. We are losing time.",
+    "ask_location.1": "I am calling from the cyber crime branch headquarters in New Delhi. Your case was transferred here from the local station, which is why you will not find it there.",
+    "ask_location.2": "I cannot give the office address over the phone. The details of this case are confidential.",
+    "ask_proof.1": "I understand that you want proof. You will receive the written notice as soon as the verification is complete. Right now we need to finish the process so that no action is taken against you.",
+    "ask_proof.2": "I have given you my badge number and the case details. If you keep refusing to cooperate, I will have to note that in the file, and it can work against you.",
+    "ask_info.1": "Yes, {name}. Your name and number are in the case file in front of me. That is how I reached you.",
+    "ask_info.2": "All your details are in the case file, your phone number, bank account and address. Please do not worry about how.",
+    "stall.1": "Please stay on the line, we are almost done. It will only take a few minutes.",
+    "stall.2": "I need you to stay on the line. Please do not make any other calls while we do this.",
+    "scared.1": "Please don't be scared. I am here to help you. If you follow my steps, nothing will happen to you.",
+    "scared.2": "Take a deep breath. If you cooperate, you are not in trouble. I only need you to listen and do as I say."
+  },
+  "debrief": {
+    "summary": {
+      "win": "You did not share the OTP. Well done. Ending the call was the right move.",
+      "lose": "You read out the OTP. In a real scam, that would give the caller access to your money. Do not worry. This was only practice, and now you know what to watch for.",
+      "idle": "The call went quiet and you did not share anything. Staying silent or hanging up is always better than going along with a caller like this.",
+      "win_passive": "You did not share the OTP, which is what matters most. But you also never clearly said no. Next time, say no and hang up. You do not have to be polite to a caller who asks for an OTP."
+    },
+    "worked": "This trick worked on you",
+    "resisted": "You did not fall for this one",
+    "tactics": {
+      "authority": {
+        "name": "Pretending to be an officer",
+        "what": "The caller claimed to be a police inspector so that you would obey without questioning.",
+        "instead": "Police and government agencies do not investigate or arrest anyone over a phone or video call. Hang up, and call the official number yourself."
+      },
+      "fear": {
+        "name": "Fear of arrest",
+        "what": "They said a parcel and your bank account were linked to a crime, and that a warrant was already issued.",
+        "instead": "Stay calm. A genuine case does not arrive as a surprise phone threat. Do not act on fear. Talk to someone you trust first."
+      },
+      "secrecy": {
+        "name": "Do not tell anyone",
+        "what": "They said the case was confidential and told you not to speak to family, friends or the bank, so nobody could talk sense into you.",
+        "instead": "Do the opposite. Tell a family member right away. Being told to keep a call secret is one of the biggest warning signs of a scam."
+      },
+      "urgency": {
+        "name": "Artificial deadlines",
+        "what": "The caller pushed you to act within a minute or two, so you would not have time to think.",
+        "instead": "Real processes do not have one minute deadlines. Slow down, and hang up if you feel rushed."
+      },
+      "credential_request": {
+        "name": "Asking for your OTP",
+        "what": "The caller wanted you to read out the OTP that came to your phone.",
+        "instead": "Never share an OTP, PIN or password with anyone, including someone claiming to be from your bank or the police."
+      },
+      "false_help": {
+        "name": "The \"I am here to help you\" trick",
+        "what": "After frightening you, the caller turned friendly and said they only wanted to help, so you would trust them and follow their steps.",
+        "instead": "A real officer does not scare you first and then ask for your trust. When someone who just threatened you offers help, be more careful, not less. Tell a family member."
+      }
+    },
+    "facts": ["Police, CBI, customs and courts do not arrest people over a phone or video call. There is no such thing as a digital arrest.", "Your bank and the RBI will never ask you for an OTP, PIN, CVV or password.", "Scammers often already know your name and other details, because personal data leaks. A caller knowing them proves nothing.", "Real government agencies do not use WhatsApp or Skype calls for official action."],
+    "help": "If this ever happens for real, hang up, call 1930, and report it at cybercrime.gov.in. Tell your family first.",
+    "disclaimer": "This was a simulation. Nobody called you, and no real information was used."
+  }
+}

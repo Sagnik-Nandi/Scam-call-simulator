@@ -1,0 +1,12 @@
+# secrets - never commit
+api-key.txt
+*.key
+.env
+secrets/
+
+# generated
+audio/
+__pycache__/
+.pytest_cache/
+*.pyc
+usage.txt
