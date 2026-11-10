@@ -63,19 +63,29 @@ def _public_debrief(s: engine.Session, deb: Optional[dict]) -> Optional[dict]:
 
 # ----------------------------------------------------------------- API
 
+def _has_lines(scenario_id: str, lang: str) -> bool:
+    return (config.SCENARIO_DIR / scenario_id / "lines" / f"{lang}.json").exists()
+
+
+def _tricks(scenario_id: str, lang: str) -> list:
+    # the tricks scam callers use, in this language (names only; the debrief has the detail)
+    return [{"id": tid, "name": tx["name"]}
+            for tid, tx in engine.load_lines(scenario_id, lang)["debrief"]["tactics"].items()]
+
+
 @app.get("/api/config")
 def get_config():
     langs = engine.list_languages()
-    scenario = "digital_arrest"
+    scenarios = engine.list_scenarios()
     return {
         "languages": [{"code": c, "name": l["name"], "review_status": l.get("review_status", ""), "ui": l["ui"],
                        "persona": l["persona"],
-                       # the tricks scam callers use, in this language (names only; the debrief has the detail)
-                       "tricks": [{"id": tid, "name": tx["name"]}
-                                  for tid, tx in engine.load_lines(scenario, c)["debrief"]["tactics"].items()]}
+                       "tricks": _tricks("digital_arrest", c),          # kept for compatibility
+                       "scenarios": {s["id"]: {"title": engine.scenario_title(s["id"], c), "tricks": _tricks(s["id"], c)}
+                                     for s in scenarios if _has_lines(s["id"], c)}}
                       for c, l in langs.items()],
-        "scenarios": [{"id": scenario, "title": "Digital arrest call"}],
-        "helpline": engine.load_lines(scenario, "en")["debrief"].get("helpline", ""),
+        "scenarios": [s for s in scenarios if _has_lines(s["id"], "en")],
+        "helpline": engine.load_lines("digital_arrest", "en")["debrief"].get("helpline", ""),
         "invite_required": bool(config.INVITE_CODE),
         "allow_text": config.ALLOW_TEXT_TURN,
     }
@@ -116,6 +126,10 @@ async def start_session(payload: dict, x_invite_code: str = Header(default="")):
     scenario = payload.get("scenario", "digital_arrest")
     if lang not in engine.list_languages():
         raise HTTPException(400, "unknown language")
+    if not isinstance(scenario, str) or scenario not in {s["id"] for s in engine.list_scenarios()}:
+        raise HTTPException(400, "unknown scenario")          # also blocks path tricks like "../x"
+    if not _has_lines(scenario, lang):
+        raise HTTPException(400, "scenario not available in this language")
     s = engine.new_session(scenario, lang, payload.get("nickname", ""))
     if s.custom and not await _render_custom_name(s):
         persona = engine.load_language(lang)["persona"]      # could not render: use the default fictional name

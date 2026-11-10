@@ -123,6 +123,13 @@
   .chip.worked { border-color: var(--bad); } .chip.resisted { border-color: var(--good); } .chip.unused { opacity: .7; }
   .dot.unused { background: var(--line); }
   .pagetitle { margin: 4px 0 14px; font-size: 1.5rem; }
+  .scen { border: 0; padding: 0; margin: 14px 0 0; min-width: 0; }
+  .scen legend { font-weight: 600; padding: 0; margin: 0 0 6px; }
+  .scen-list { display: grid; gap: 8px; }
+  .scard { display: flex; align-items: center; gap: 12px; min-height: 48px; margin: 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); font-weight: 600; cursor: pointer; }
+  .scard input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--accent); }
+  .scard:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .scard:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -153,12 +160,16 @@
             <label for="invite">Invite code</label>
             <input id="invite" type="text" autocomplete="off">
           </div>
+          <fieldset class="scen hidden" id="scenarioRow">
+            <legend id="t-choose-scenario"></legend>
+            <div class="scen-list" id="scenarios"></div>
+          </fieldset>
           <button class="primary" id="start" style="margin-top:14px"></button>
         </div>
       </div>
       <div class="col-side">
         <div id="landHelp" class="helpcard"></div>
-        <div class="card sidecard"><h2 id="t-tricks"></h2><div class="chips" id="landTricks"></div></div>
+        <div class="card sidecard" id="landTricksCard"><h2 id="t-tricks"></h2><div class="chips" id="landTricks"></div></div>
       </div>
     </div>
   </section>
@@ -195,6 +206,7 @@ const SPEECH_LANG = {en: "en-IN", hi: "hi-IN", bn: "bn-IN"};
 const MAX_RECORD_MS = 15000, SILENCE_MS = 12000;
 
 let cfg = null, ui = {}, lang = "en", sid = null, invite = "";
+let scenario = null, callScenario = null;      // scenario = the picker's choice (persisted); callScenario = the one the call was started with
 let recorder = null, chunks = [], recTimer = null, silenceTimer = null, busy = false, ended = false;
 let player = new Audio();
 let otpShown = false, firstReply = null, answered = false;
@@ -219,6 +231,7 @@ function applyUI() {
   $("t-persona-text").textContent = ui.persona_text.replace("{name}", p.name).replace("{last4}", p.last4);
   $("t-nick").textContent = ui.nickname_label; $("t-nick-hint").textContent = ui.nickname_hint;
   document.title = ui.title;
+  renderScenarios();
   renderLanding();
 }
 
@@ -232,10 +245,41 @@ function helpCard(host, text) {
   return host;
 }
 
-function trickChips(host, status) {          // status: {trickId: "worked" | "resisted"}; omitted on the landing page
-  host.replaceChildren();
+function availableScenarios() {              // scenarios this language has a map entry for (no map at all: every scenario)
   const l = cfg.languages.find(x => x.code === lang);
-  ((l && l.tricks) || []).forEach(tr => {
+  const ok = cfg.scenarios.filter(s => !l.scenarios || l.scenarios[s.id]);
+  return ok.length ? ok : cfg.scenarios.slice(0, 1);
+}
+
+function chosenScenario() {                  // the stored choice if this language offers it, else the first available one
+  const avail = availableScenarios();
+  return avail.find(s => s.id === scenario) || avail[0];
+}
+
+function scenarioTitle(s) {
+  const l = cfg.languages.find(x => x.code === lang);
+  return (l.scenarios && l.scenarios[s.id] && l.scenarios[s.id].title) || s.title;
+}
+
+function tricksFor(sid) {                    // the call's tricks in this language; the legacy top-level list if the field is missing
+  const l = cfg.languages.find(x => x.code === lang), s = l.scenarios && l.scenarios[sid];
+  return (s && s.tricks) || l.tricks || [];
+}
+
+function renderScenarios() {
+  const avail = availableScenarios(), cur = chosenScenario().id;
+  $("scenarioRow").classList.toggle("hidden", avail.length < 2);
+  $("t-choose-scenario").textContent = ui.choose_scenario || "";
+  $("scenarios").replaceChildren(...avail.map(s => {
+    const input = el("input"); input.type = "radio"; input.name = "scenario"; input.value = s.id; input.checked = s.id === cur;
+    const lab = el("label", "scard"); lab.append(input, el("span", "", scenarioTitle(s)));
+    return lab;
+  }));
+}
+
+function trickChips(host, tricks, status) {  // status: {trickId: "worked" | "resisted"}; omitted on the landing page
+  host.replaceChildren();
+  tricks.forEach(tr => {
     const st = status ? (status[tr.id] || "unused") : "";
     const chip = el("span", "chip " + st);
     if (status) chip.append(el("span", "dot " + st));
@@ -248,7 +292,9 @@ function renderLanding() {
   $("t-privacy").textContent = ui.privacy || "";
   $("t-tricks").textContent = ui.tricks_common || "";
   helpCard($("landHelp"), "cybercrime.gov.in");
-  trickChips($("landTricks"), null);
+  const tricks = tricksFor(chosenScenario().id);
+  trickChips($("landTricks"), tricks, null);
+  $("landTricksCard").classList.toggle("hidden", !tricks.length);
 }
 
 async function init() {
@@ -258,16 +304,19 @@ async function init() {
   lang = getPref("lang") || "en"; if (!cfg.languages.some(l => l.code === lang)) lang = "en";
   sel.value = lang;
   sel.onchange = () => { lang = sel.value; pref("lang", lang); applyUI(); };
+  scenario = getPref("scenario");
+  $("scenarios").onchange = e => { scenario = e.target.value; pref("scenario", scenario); renderLanding(); };
   if (cfg.invite_required) $("inviteRow").classList.remove("hidden");
   if (cfg.allow_text) $("dev").classList.remove("hidden");
   applyUI();
   $("start").onclick = async () => {
     invite = $("invite").value.trim();
+    callScenario = chosenScenario().id;
     $("setup").classList.add("hidden"); $("appbar").classList.add("hidden"); $("callScreen").classList.remove("hidden");
     $("status").textContent = ""; $("loading").classList.remove("hidden");     // a custom name takes a few seconds to prepare
     try {
       const r = await fetch("/api/session", {method: "POST", headers: {"Content-Type": "application/json", "X-Invite-Code": invite},
-        body: JSON.stringify({language: lang, scenario: "digital_arrest", nickname: $("nick").value.trim()})});
+        body: JSON.stringify({language: lang, scenario: callScenario, nickname: $("nick").value.trim()})});
       if (!r.ok) throw new Error((await r.json()).detail || r.status);
       const body = await r.json(); sid = body.session_id; firstReply = body.reply;
       $("loading").classList.add("hidden"); $("status").textContent = ui.incoming;
@@ -419,10 +468,10 @@ function finish(d) {
   // 4. every trick scam callers use, marked by what happened in this call
   const status = {}; d.tactics.forEach(x => { status[x.id] = x.worked ? "worked" : "resisted"; });
   const tricks = el("div", "card sidecard"); tricks.append(el("h2", "", ui.tricks_common));
-  const chips = el("div", "chips"); trickChips(chips, status);
+  const chips = el("div", "chips"); trickChips(chips, tricksFor(callScenario), status);
   chips.querySelectorAll(".chip.worked").forEach(c => c.title = d.labels.worked);
   chips.querySelectorAll(".chip.resisted").forEach(c => c.title = d.labels.resisted);
-  tricks.append(chips); put(side, tricks, 4);
+  tricks.append(chips); if (chips.childElementCount) put(side, tricks, 4);
 
   // 5. actions
   const row = el("div", "controls");

@@ -3,6 +3,7 @@
     python scripts/smoke_test.py            # costs a few credits
 Prints only ASCII-safe summaries (match / mismatch and latency), so it is safe in any terminal.
 """
+import argparse
 import asyncio
 import sys
 import time
@@ -12,9 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backend import engine, gnani  # noqa: E402
 
 
-async def main():
+async def main(scenario: str):
     for code, lang in engine.list_languages().items():
-        text = engine.load_lines("digital_arrest", code)["lines"]["verify"]
+        text = engine.load_lines(scenario, code)["lines"]["verify"]
         t0 = time.time()
         wav = await gnani.tts(text, lang["voice"], lang["tts"], lang["tts_model"])
         t1 = time.time()
@@ -27,4 +28,6 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--scenario", default="digital_arrest")
+    asyncio.run(main(ap.parse_args().scenario))

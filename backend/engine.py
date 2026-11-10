@@ -40,6 +40,18 @@ def load_lines(scenario_id: str, lang: str) -> dict:
     return load_json(config.SCENARIO_DIR / scenario_id / "lines" / f"{lang}.json")
 
 
+def list_scenarios() -> list:
+    """[{id, title}] for every scenario folder with a graph.json; digital_arrest first, then by id."""
+    out = [{"id": p.parent.name, "title": load_json(p)["title"]}
+           for p in sorted(config.SCENARIO_DIR.glob("*/graph.json"))]
+    return sorted(out, key=lambda s: (s["id"] != "digital_arrest", s["id"]))
+
+
+def scenario_title(scenario_id: str, lang: str) -> str:
+    """Localised scenario title from the lines meta, falling back to the graph's title."""
+    return load_lines(scenario_id, lang)["meta"].get("title") or load_graph(scenario_id)["title"]
+
+
 def sanitize_nickname(raw) -> str:
     """Keep a short practice name: letters (any script) and spaces only, max 20 chars. Else empty."""
     raw = " ".join(str(raw or "").split())[:20]
@@ -152,7 +164,7 @@ def step(s: Session, transcript: str) -> dict:
     s.log.append(entry)
 
     # --- loop guard: questions, nonsense, silence and "what?" can only stall so long, then it counts as a refusal
-    stalling = set(graph.get("interrupts", {})) | {"silence", "unknown", "confused"}
+    stalling = set(graph.get("interrupts", {})) | {"silence", "unknown", "confused", "ask_reason"}
     if intent in stalling:
         if s.stalls >= graph.get("stall_limit", 6):
             intent = "refuse"
@@ -202,6 +214,9 @@ def step(s: Session, transcript: str) -> dict:
             return _result(s, intent, leak, _reply(graph, lines, "generic.unknown", s.node, s))
     s.unknown_in_row = 0
 
+    # "what is the issue?" moves the greeting on to the story; at any step without its own rule it means "explain again"
+    if intent == "ask_reason" and "ask_reason" not in node["on"]:
+        intent = "confused"
     target = node["on"].get(intent, node["on"].get("default"))
 
     # --- ask-again branch: same node, explanatory variant line (a few times, then treat as a refusal)

@@ -50,16 +50,21 @@ async def render(scenario: str, lang_code: str, force: bool, dry: bool) -> int:
 
 async def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--scenario", default="digital_arrest")
+    ap.add_argument("--scenario", default="digital_arrest", help="scenario id, or 'all'")
     ap.add_argument("--lang", default="all")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     langs = list(engine.list_languages()) if a.lang == "all" else [a.lang]
+    scenarios = [s["id"] for s in engine.list_scenarios()] if a.scenario == "all" else [a.scenario]
     total = 0
-    for code in langs:
-        print(f"[{code}]")
-        total += await render(a.scenario, code, a.force, a.dry_run)
+    for scenario in scenarios:
+        for code in langs:
+            if not (config.SCENARIO_DIR / scenario / "lines" / f"{code}.json").exists():
+                print(f"[{scenario}/{code}] no lines file, skipped")
+                continue
+            print(f"[{scenario}/{code}]")
+            total += await render(scenario, code, a.force, a.dry_run)
     print(f"done. {total} characters {'would be ' if a.dry_run else ''}sent to TTS "
           f"(~{total * 0.002:.1f} credits at about 0.002 per character)")
 

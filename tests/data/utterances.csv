@@ -143,3 +143,49 @@ hi,comply,हैलो
 hi,comply,नमस्ते
 bn,comply,হ্যালো
 bn,comply,নমস্কার
+en,refuse,no I will call my bank myself
+en,refuse,I will call the bank on the number on my card
+en,refuse,I will go to my branch and check
+hi,refuse,मैं खुद बैंक को फोन करूँगा
+hi,refuse,main bank ko call karunga
+bn,refuse,আমি নিজে ব্যাংকে ফোন করব
+bn,refuse,ami bank e phone korbo
+en,ask_reason,Yeah so what is the issue
+en,ask_reason,okay what is the issue
+en,ask_reason,why are you calling me
+en,ask_reason,what happened
+en,ask_reason,what is this about
+hi,ask_reason,हाँ बताइए क्या बात है
+hi,ask_reason,क्या हुआ
+hi,ask_reason,kya mamla hai
+bn,ask_reason,হ্যাঁ বলুন কী ব্যাপার
+bn,ask_reason,কী হয়েছে
+en,ask_identity,which bank are you from
+en,ask_proof,can you send me an SMS
+en,refuse,can I call you back
+en,ask_info,what is my account number then
+en,confused,which shopping site
+hi,ask_identity,आप किस बैंक से बोल रहे हैं
+hi,refuse,मैं बाद में फोन करूँगा
+bn,ask_identity,আপনি কোন ব্যাংক থেকে বলছেন
+bn,refuse,আমি পরে ফোন করব
+en,comply,Okay how will you verify me
+en,comply,please cancel it
+en,ask_reason,why do you need my OTP
+hi,comply,वेरिफाई कैसे करेंगे
+bn,comply,কীভাবে ভেরিফাই করবেন
+hi,comply,verify कैसे करेंगे
+hi,comply,cancel कर दीजिए
+hi,ask_reason,OTP क्यों चाहिए
+hi,refuse,मैं बैंक जाकर पता करूँगा
+hi,refuse,मैं बाद में बात करता हूँ
+hi,comply,ठीक है verify कैसे करेंगे
+bn,ask_info,আমার নম্বর কোথায় পেলেন
+bn,comply,verify কীভাবে করবেন
+bn,comply,cancel করে দিন
+bn,ask_reason,OTP কেন লাগবে
+bn,refuse,আমি ব্যাংকে গিয়ে দেখব
+bn,refuse,আমি পরে কথা বলব
+en,refuse,I will call my lawyer
+hi,refuse,मैं अपने वकील से बात करूँगा
+bn,refuse,আমি উকিলের সঙ্গে কথা বলব

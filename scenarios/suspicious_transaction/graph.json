@@ -1,0 +1,225 @@
+{
+  "id": "suspicious_transaction",
+  "title": "Suspicious transaction call",
+  "start": "greet",
+  "silence_limit": 2,
+  "interrupt_limits": {
+    "question": 3,
+    "stall": 2,
+    "scared": 2
+  },
+  "unknown_retries": 1,
+  "unknown_min_words": 3,
+  "clarify_limit": 1,
+  "nodes": {
+    "greet": {
+      "tactics": [
+        "authority"
+      ],
+      "on": {
+        "comply": "alert",
+        "refuse": "alert",
+        "confused": "@clarify",
+        "ask_reason": "alert",
+        "unknown": "alert",
+        "default": "alert"
+      }
+    },
+    "alert": {
+      "tactics": [
+        "fear",
+        "urgency"
+      ],
+      "on": {
+        "comply": "verify",
+        "refuse": "warn_block",
+        "confused": "@clarify",
+        "default": "verify"
+      }
+    },
+    "offer_help": {
+      "tactics": [
+        "false_help",
+        "secrecy"
+      ],
+      "on": {
+        "comply": "otp_demand",
+        "refuse": "warn_block",
+        "confused": "@clarify",
+        "default": "otp_demand"
+      }
+    },
+    "verify": {
+      "tactics": [
+        "authority"
+      ],
+      "on": {
+        "comply": "offer_help",
+        "refuse": "warn_block",
+        "confused": "@clarify",
+        "default": "offer_help"
+      }
+    },
+    "warn_block": {
+      "tactics": [
+        "fear",
+        "authority"
+      ],
+      "max_visits": 1,
+      "on_exhausted": "warn_loss",
+      "on": {
+        "comply": "@resume",
+        "refuse": "warn_loss",
+        "confused": "@clarify",
+        "default": "@resume"
+      },
+      "remember": true
+    },
+    "warn_loss": {
+      "tactics": [
+        "fear",
+        "urgency"
+      ],
+      "max_visits": 1,
+      "on_exhausted": "pushback",
+      "on": {
+        "comply": "@resume",
+        "refuse": "pushback",
+        "confused": "@clarify",
+        "default": "@resume"
+      },
+      "remember": true
+    },
+    "pushback": {
+      "tactics": [
+        "fear",
+        "secrecy"
+      ],
+      "on": {
+        "comply": "@resume",
+        "refuse": "final_early",
+        "confused": "@clarify",
+        "default": "@resume"
+      },
+      "remember": true
+    },
+    "final_early": {
+      "tactics": [
+        "urgency",
+        "fear"
+      ],
+      "max_visits": 1,
+      "on_exhausted": "end_win",
+      "on": {
+        "comply": "@resume",
+        "refuse": "end_win",
+        "confused": "@clarify",
+        "default": "@resume"
+      },
+      "remember": true
+    },
+    "otp_demand": {
+      "tactics": [
+        "credential_request"
+      ],
+      "show_otp": true,
+      "on": {
+        "leak": "end_lose", "ask_reason": "otp_soft",
+        "comply": "@clarify",
+        "refuse": "otp_soft",
+        "confused": "@clarify",
+        "default": "otp_soft"
+      }
+    },
+    "otp_soft": {
+      "tactics": [
+        "false_help",
+        "credential_request"
+      ],
+      "show_otp": true,
+      "on": {
+        "leak": "end_lose",
+        "comply": "@clarify",
+        "refuse": "otp_pressure",
+        "confused": "@clarify",
+        "default": "otp_pressure"
+      }
+    },
+    "otp_pressure": {
+      "tactics": [
+        "fear",
+        "secrecy",
+        "credential_request"
+      ],
+      "show_otp": true,
+      "on": {
+        "leak": "end_lose",
+        "comply": "@clarify",
+        "refuse": "final_warning",
+        "confused": "@clarify",
+        "default": "final_warning"
+      }
+    },
+    "final_warning": {
+      "tactics": [
+        "urgency",
+        "fear"
+      ],
+      "show_otp": true,
+      "on": {
+        "leak": "end_lose",
+        "comply": "@clarify",
+        "refuse": "end_win",
+        "confused": "@clarify",
+        "default": "end_win"
+      }
+    },
+    "end_lose": {
+      "terminal": "lose",
+      "tactics": []
+    },
+    "end_win": {
+      "terminal": "win",
+      "tactics": []
+    }
+  },
+  "interrupts": {
+    "ask_identity": {
+      "group": "question",
+      "tactics": [
+        "authority"
+      ]
+    },
+    "ask_location": {
+      "group": "question",
+      "tactics": [
+        "authority"
+      ]
+    },
+    "ask_proof": {
+      "group": "question",
+      "tactics": [
+        "authority",
+        "urgency"
+      ]
+    },
+    "ask_info": {
+      "group": "question",
+      "tactics": [
+        "authority",
+        "fear"
+      ]
+    },
+    "stall": {
+      "tactics": [
+        "urgency"
+      ]
+    },
+    "scared": {
+      "tactics": [
+        "false_help"
+      ]
+    }
+  },
+  "stall_limit": 6
+}

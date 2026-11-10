@@ -15,5 +15,8 @@ COPY scenarios ./scenarios
 COPY frontend ./frontend
 COPY audio ./audio
 
+RUN useradd -m -u 1000 user && mkdir -p /app/audio/_live && chown -R user /app
+USER user
+
 ENV PORT=7860
 CMD ["sh", "-c", "uvicorn backend.app:app --host 0.0.0.0 --port ${PORT}"]

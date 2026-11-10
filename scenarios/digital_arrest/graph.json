@@ -14,6 +14,7 @@
         "comply": "parcel",
         "refuse": "parcel",
         "confused": "@clarify",
+        "ask_reason": "parcel",
         "unknown": "parcel",
         "default": "parcel"
       }
@@ -95,7 +96,7 @@
       "tactics": ["credential_request"],
       "show_otp": true,
       "on": {
-        "leak": "end_lose",
+        "leak": "end_lose", "ask_reason": "otp_soft",
         "comply": "@clarify",
         "refuse": "otp_soft",
         "confused": "@clarify",

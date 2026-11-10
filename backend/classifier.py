@@ -1,5 +1,6 @@
 """Rule-based intent classifier: comply / refuse / confused / hangup / silence, plus the question
-intents the caller answers in character (ask_identity, ask_location, ask_proof, ask_info, stall, scared).
+intents the caller answers in character (ask_identity, ask_location, ask_proof, ask_info, stall, scared),
+and ask_reason ("what is the issue?"), which the greeting answers by telling the story and later steps treat as confused.
 
 Each language file supplies keyword phrases per intent. The longest matched phrases win
 (by token count), so "what should I do" (comply) beats a bare "what" (confused) and
@@ -9,7 +10,7 @@ hangup > refuse > questions > confused > comply.
 import re
 import unicodedata
 
-INTENTS = ("hangup", "refuse", "ask_identity", "ask_location", "ask_proof", "ask_info",
+INTENTS = ("hangup", "refuse", "ask_identity", "ask_location", "ask_proof", "ask_info", "ask_reason",
            "stall", "scared", "confused", "comply")  # tie-break order: safest reading first
 _STRIP = re.compile(r"[,.;:!?()\[\]\"'‘’“”\-–—।|/]+")
 

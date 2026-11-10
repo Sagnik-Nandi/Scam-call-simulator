@@ -155,3 +155,20 @@ def test_landing_and_ending_share_a_header_and_the_call_screen_has_none():
 def test_landing_page_has_no_translation_review_note():
     html = client.get("/").text
     assert "reviewNote" not in html and "needs native review" not in html
+
+
+def test_config_lists_digital_arrest_scenario():
+    scenarios = client.get("/api/config").json()["scenarios"]
+    assert "digital_arrest" in {s["id"] for s in scenarios}
+
+
+def test_config_scenario_titles_and_tricks_per_language():
+    for lang in client.get("/api/config").json()["languages"]:
+        entry = lang["scenarios"]["digital_arrest"]
+        assert entry["title"] and entry["tricks"]
+
+
+def test_unknown_or_traversal_scenario_rejected():
+    for scenario in ("nope", "../digital_arrest"):
+        r = client.post("/api/session", json={"language": "en", "scenario": scenario})
+        assert r.status_code == 400, scenario

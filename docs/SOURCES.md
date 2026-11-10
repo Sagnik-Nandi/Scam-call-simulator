@@ -15,6 +15,11 @@ When verifying, record the date and what the page actually says.
 | 7 | Report with the 1930 helpline and cybercrime.gov.in | I4C / cybercrime.gov.in home page | UNVERIFIED |
 | 8 | Government agencies do not use WhatsApp or Skype for official action | CERT-In / I4C statement (reported in coverage; find primary) | UNVERIFIED |
 | 9 | Scammers often already know victims' names and details from leaked data, so knowing them proves nothing | Find an I4C/MHA/RBI awareness item that says this; otherwise soften or remove | UNVERIFIED |
+| 10 | (suspicious_transaction) Your bank and the RBI will never ask you for an OTP, PIN, CVV or password | Same claim as row 5. Reuse its source: [RBI Kehta Hai: fraud emails, calls and SMSs](https://website.rbi.org.in/web/rbi/rbi-kehta-hai/fraud-emails-calls-and-smses) | UNVERIFIED |
+| 11 | (suspicious_transaction) An OTP is used to approve a transaction. Reading it out to a caller can approve a payment instead of stopping it | No official document for this exact script found (see `docs/SCAM_PLAYBOOKS.md`, scenario 2). Candidate to open and check: [RBI Kehta Hai](https://website.rbi.org.in/web/rbi/rbi-kehta-hai/fraud-emails-calls-and-smses). Need an RBI, NPCI or bank page stating that an OTP authorises a transaction; soften the sentence if none says it | UNVERIFIED |
+| 12 | (suspicious_transaction) If you see a debit you do not recognise, call your bank yourself using the number on your card or in the official app, not a number the caller gives you | Candidate: [RBI Kehta Hai](https://website.rbi.org.in/web/rbi/rbi-kehta-hai/fraud-emails-calls-and-smses). Need an RBI, NPCI or bank page with this advice; soften if not found | UNVERIFIED |
+| 13 | (suspicious_transaction) Scammers often already know your name and the last digits of your account, because personal data leaks. A caller knowing them proves nothing | Same claim as row 9. Reuse its source | UNVERIFIED |
+| 14 | (suspicious_transaction) Help text: hang up, call your bank on the number on your card or in its app, report at cybercrime.gov.in or 1930 | Same report channels as row 7 (I4C / cybercrime.gov.in). The bank-number advice is covered by row 12 | UNVERIFIED |
 
 ## Do not use without a primary source
 - Loss or case-count statistics seen in news coverage (for example "123,672 cases / Rs 1,935 crore in 2024"). Not verified. Not in the app.

@@ -644,3 +644,270 @@ def test_the_debrief_carries_the_helpline_number_for_every_language():
         s = engine.new_session("digital_arrest", lang)
         res = engine.step(s, "i am hanging up")
         assert res["debrief"]["helpline"] == "1930"
+
+
+# ---------------------------------------------------------------- every scenario: structure, keys, wording
+
+SCENARIOS = ["digital_arrest", "suspicious_transaction"]
+ALLOWED_PLACEHOLDERS = {"{name}", "{last4}"}
+TRAILING_CONTINUE_PHRASES = ["Shall we continue", "let us continue", "Let us continue", "क्या हम आगे बढ़ें",
+                             "आगे बढ़ते हैं", "আমরা কি এগোব", "এগোই"]
+
+
+def _graph_tactics(graph):
+    used = set()
+    for node in graph["nodes"].values():
+        used.update(node.get("tactics", []))
+    for spec in graph.get("interrupts", {}).values():
+        used.update(spec.get("tactics", []))
+    return used
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_every_node_has_a_line(scenario, lang):
+    graph = engine.load_graph(scenario)
+    lines = engine.load_lines(scenario, lang)["lines"]
+    missing = [n for n in graph["nodes"] if n not in lines]
+    assert missing == [], f"{scenario}/{lang}: no line for {missing}"
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_every_tactic_used_has_debrief_text(scenario, lang):
+    graph = engine.load_graph(scenario)
+    tactics = engine.load_lines(scenario, lang)["debrief"]["tactics"]
+    missing = _graph_tactics(graph) - set(tactics)
+    assert not missing, f"{scenario}/{lang}: no debrief text for {sorted(missing)}"
+    for tid in _graph_tactics(graph):
+        assert all(tactics[tid][k] for k in ("name", "what", "instead")), f"{scenario}/{lang}: empty text for {tid}"
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_generic_keys_exist(scenario, lang):
+    lines = engine.load_lines(scenario, lang)["lines"]
+    for key in ("generic.clarify", "generic.silence", "generic.unknown", "otp.clarify"):
+        assert key in lines, f"{scenario}/{lang}: missing {key}"
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_summary_has_exactly_the_four_outcomes(scenario, lang):
+    assert set(engine.load_lines(scenario, lang)["debrief"]["summary"]) == {"win", "win_passive", "lose", "idle"}
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_every_branch_target_exists(scenario, lang):
+    graph = engine.load_graph(scenario)
+    special = {"@clarify", "@resume"}
+    for node_id, node in graph["nodes"].items():
+        for intent, target in node.get("on", {}).items():
+            assert target in special or target in graph["nodes"], f"{scenario}: {node_id}.{intent} -> {target}"
+        if "on_exhausted" in node:
+            assert node["on_exhausted"] in graph["nodes"], f"{scenario}: {node_id} on_exhausted"
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_every_interrupt_has_two_variant_lines(scenario, lang):
+    graph = engine.load_graph(scenario)
+    lines = engine.load_lines(scenario, lang)["lines"]
+    for intent in graph["interrupts"]:
+        assert f"{intent}.1" in lines and f"{intent}.2" in lines, f"{scenario}/{lang}: missing {intent} variants"
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_placeholders_are_only_name_and_last4(scenario, lang):
+    import re
+    spec = engine.load_lines(scenario, lang)
+    found = set()
+    for text in _all_strings(spec["lines"]) + _all_strings(spec["debrief"]):
+        found |= set(re.findall(r"\{[^{}]*\}", text))
+    assert found <= ALLOWED_PLACEHOLDERS, f"{scenario}/{lang}: unexpected placeholders {found - ALLOWED_PLACEHOLDERS}"
+
+
+def _all_strings(obj):
+    if isinstance(obj, str):
+        return [obj]
+    if isinstance(obj, dict):
+        return [s for v in obj.values() for s in _all_strings(v)]
+    if isinstance(obj, list):
+        return [s for v in obj for s in _all_strings(v)]
+    return []
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_has_an_otp_node_and_both_endings(scenario):
+    graph = engine.load_graph(scenario)
+    assert any(n.get("show_otp") for n in graph["nodes"].values())
+    kinds = {n["terminal"] for n in graph["nodes"].values() if "terminal" in n}
+    assert {"win", "lose"} <= kinds
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_no_trailing_lets_continue_prompts_in_any_scenario(scenario, lang):
+    text = json_text(engine.load_lines(scenario, lang)["lines"])
+    for phrase in TRAILING_CONTINUE_PHRASES:
+        assert phrase not in text, f"{scenario}/{lang}: {phrase}"
+
+
+@pytest.mark.parametrize("lang", ["hi", "bn"])
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_translations_have_the_same_keys_as_english(scenario, lang):
+    en = engine.load_lines(scenario, "en")
+    other = engine.load_lines(scenario, lang)
+    assert set(other["lines"]) == set(en["lines"])
+    assert set(other["debrief"]["tactics"]) == set(en["debrief"]["tactics"])
+    assert set(other["debrief"]["summary"]) == set(en["debrief"]["summary"])
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_lines_have_no_links_or_long_numbers(scenario, lang):
+    import re
+    text = json_text(engine.load_lines(scenario, lang)["lines"])
+    assert not any(x in text for x in ("http", "www.", "://"))
+    assert not re.search(r"\d{6,}", text), "phone numbers and account numbers must not appear in caller lines"
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_scenario_english_says_otp_not_code(scenario):
+    import re
+    assert not re.search(r"code", json_text(engine.load_lines(scenario, "en")["lines"]), re.I)
+
+
+# ---------------------------------------------------------------- suspicious_transaction walkthroughs
+
+SUSPICIOUS = "suspicious_transaction"
+
+
+def new_suspicious(lang="en"):
+    return engine.new_session(SUSPICIOUS, lang)
+
+
+def spoken_digits(lang, digits):
+    """Read the OTP out in the language's own digit words (first word listed for each digit)."""
+    back = {}
+    for word, d in engine.load_language(lang)["digit_words"].items():
+        back.setdefault(d, word)
+    return " ".join(back[d] for d in digits)
+
+
+def test_suspicious_saying_yes_walks_greet_alert_verify_offer_help_to_the_otp():
+    s = new_suspicious()
+    seen = [s.node]
+    for _ in range(4):
+        engine.step(s, "yes")
+        seen.append(s.node)
+    assert seen == ["greet", "alert", "verify", "offer_help", "otp_demand"]
+
+
+def test_suspicious_reading_the_otp_digits_ends_in_a_loss():
+    s = advance_to(new_suspicious(), "otp_demand")
+    res = engine.step(s, f"it is {s.otp}")
+    assert res["outcome"] == "lose" and res["done"]
+    assert any(t["worked"] for t in res["debrief"]["tactics"]), "the tactics that got the OTP must show as worked"
+
+
+def test_suspicious_hang_up_ends_in_a_win():
+    res = engine.step(new_suspicious(), "hang up")
+    assert res["outcome"] == "win" and res["done"] and res["debrief"]["hung_up"]
+
+
+def test_suspicious_repeated_refusal_ends_as_a_win_within_15_turns():
+    s = new_suspicious()
+    res = {"done": False}
+    turns = 0
+    for turns in range(1, 16):
+        res = engine.step(s, "no, I will call my bank myself")
+        if res["done"]:
+            break
+    assert res["done"] and res["outcome"] == "win", f"still on {s.node} after {turns} turns"
+
+
+@pytest.mark.parametrize("lang", ["hi", "bn"])
+def test_suspicious_otp_spoken_in_regional_digit_words_is_a_leak(lang):
+    s = new_suspicious(lang)
+    s.node = "otp_demand"
+    res = engine.step(s, spoken_digits(lang, s.otp))
+    assert res["outcome"] == "lose"
+
+
+def test_suspicious_debrief_tactic_names_come_from_this_scenarios_lines():
+    graph = engine.load_graph(SUSPICIOUS)
+    lines = engine.load_lines(SUSPICIOUS, "en")
+    s = new_suspicious()
+    for _ in range(40):
+        res = engine.step(s, "no, I will call my bank myself")
+        if res["done"]:
+            break
+    tactics = res["debrief"]["tactics"]
+    assert tactics, "a refused call still hears tactics"
+    for t in tactics:
+        assert t["id"] in _graph_tactics(graph)
+        assert t["name"] == lines["debrief"]["tactics"][t["id"]]["name"]
+
+
+# ---------------------------------------------------------------- regression: live demo, 10 Nov
+# "Yeah, so what is the issue?" at the greeting replayed the greeting, and "You need to verify me." got the secrecy line.
+
+@pytest.mark.parametrize("scenario,story", [("digital_arrest", "parcel"), ("suspicious_transaction", "alert")])
+@pytest.mark.parametrize("text", ["Yeah, so what is the issue?", "why are you calling me", "what happened"])
+def test_asking_what_the_call_is_about_at_the_greeting_tells_the_story(scenario, story, text):
+    s = engine.new_session(scenario, "en")
+    res = engine.step(s, text)
+    assert s.node == story and res["reply"]["key"] == story
+
+
+def test_asking_what_the_issue_is_later_recaps_that_step():
+    s = advance_to(engine.new_session("suspicious_transaction", "en"), "alert")
+    res = engine.step(s, "okay, what is the issue?")
+    assert s.node == "alert" and res["reply"]["key"] == "alert.clarify"
+
+
+def test_the_live_demo_conversation_now_follows_the_user():
+    s = engine.new_session("suspicious_transaction", "en")
+    keys = [engine.step(s, t)["reply"]["key"] for t in
+            ["Yeah, so what is the issue?", "Okay, what is the issue?", "You need to verify me."]]
+    assert keys == ["alert", "alert.clarify", "verify"]
+
+
+@pytest.mark.parametrize("lang,text", [("hi", "हाँ बताइए क्या बात है"), ("bn", "হ্যাঁ বলুন কী ব্যাপার")])
+def test_regional_what_is_the_matter_at_the_greeting_tells_the_story(lang, text):
+    s = engine.new_session("suspicious_transaction", lang)
+    engine.step(s, text)
+    assert s.node == "alert"
+
+
+# ---------------------------------------------------------------- regression: live demo, 10 Nov (second run)
+# "Okay, how will you verify me?" was heard as confusion ("how") and replayed the debit recap.
+
+def test_asking_how_they_will_verify_moves_on_to_the_verification_step():
+    s = engine.new_session("suspicious_transaction", "en")
+    keys = [engine.step(s, t)["reply"]["key"] for t in ["Hello, what is this about exactly?", "Okay, how will you verify me?"]]
+    assert keys == ["alert", "verify"]
+
+
+@pytest.mark.parametrize("scenario", ["digital_arrest", "suspicious_transaction"])
+def test_asking_why_they_need_the_otp_gets_the_explanation_line(scenario):
+    s = advance_to(engine.new_session(scenario, "en"), "otp_demand")
+    res = engine.step(s, "why do you need my OTP")
+    assert s.node == "otp_soft" and res["reply"]["key"] == "otp_soft"
+
+
+@pytest.mark.parametrize("text,key", [("which bank are you from", "ask_identity.1"), ("can you send me an SMS", "ask_proof.1"),
+                                      ("what is my account number then", "ask_info.1")])
+def test_bank_call_questions_get_an_in_character_answer(text, key):
+    s = advance_to(engine.new_session("suspicious_transaction", "en"), "alert")
+    res = engine.step(s, text)
+    assert s.node == "alert" and res["reply"]["key"] == key
+
+
+def test_offering_to_call_back_is_resistance():
+    s = advance_to(engine.new_session("suspicious_transaction", "en"), "alert")
+    engine.step(s, "can I call you back")
+    assert s.node == "warn_block"

@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "language": "en",
+    "status": "draft",
+    "note": "Base script. Facts in debrief.facts must be checked against docs/SOURCES.md before release.",
+    "title": "Suspicious transaction call"
+  },
+  "lines": {
+    "greet": "Hello, am I speaking with {name}? This is Rakesh from the fraud prevention team at your bank. I am calling about some activity on your account.",
+    "alert": "A debit of forty nine thousand nine hundred and ninety nine rupees was just started from your account ending {last4}, to an online shopping site. If it was not you, I can cancel it. But I need to verify you first.",
+    "offer_help": "I understand this is alarming, and I want to help you stop it. Please do not discuss this call with anyone yet, because this is a confidential fraud case. Please stay on the line while I check.",
+    "verify": "To confirm your identity, I need one step. An OTP has just been sent to your registered mobile number. Please keep your phone with you and stay on the line.",
+    "otp_demand": "The OTP should have reached you by now. Please read out all six digits, so I can cancel this payment before it is completed.",
+    "otp.clarify": "The OTP that came to your phone by SMS just now. Please check your messages and read the digits to me.",
+    "warn_block": "Do you want us to block your account right now? I am trying to stop this payment over the phone, so please cooperate with me.",
+    "warn_loss": "If you do not cooperate, the payment will go through in the next few minutes, and the money will be lost. Please listen carefully and follow my instructions.",
+    "greet.clarify": "This is Rakesh from the fraud prevention team at your bank. I am calling about some activity on your account.",
+    "alert.clarify": "A debit of forty nine thousand nine hundred and ninety nine rupees is being made from your account ending {last4}, to an online shopping site. It has only just started.",
+    "offer_help.clarify": "A payment has started on your account, and I can cancel it for you. But this is a confidential fraud case, so please do not discuss it with anyone yet.",
+    "verify.clarify": "I can only cancel the payment once I confirm you are the account holder. An OTP has just been sent to your registered mobile number.",
+    "generic.silence": "Hello? Can you hear me? Please stay on the line.",
+    "pushback": "If you hang up or call anyone else now, the payment will go through and the amount will be lost. Please do not call the bank, because that will only delay the cancellation.",
+    "final_early": "This is your last chance to stop it. If you hang up now, the payment will go through, and you may lose the full amount.",
+    "otp_soft": "I understand that sharing an OTP feels risky. But this OTP only confirms that the request is yours. Without it I cannot stop the payment. Please read it out, and I will help you.",
+    "otp_pressure": "Why are you hesitating? If you do not read the OTP, the payment will complete, and your account will be debited. Do not tell your family about this yet. Read the OTP now.",
+    "final_warning": "This is your final warning. The payment will be completed in the next minute. Read the OTP now, or the money will be gone.",
+    "end_lose": "Thank you. I have the OTP. Your request is being processed now.",
+    "end_win": "Fine. The payment will go ahead without your confirmation.",
+    "generic.clarify": "A debit of forty nine thousand nine hundred and ninety nine rupees was started from your account. I want to cancel it for you, but I need your cooperation.",
+    "generic.unknown": "Sorry, I did not catch that.",
+    "ask_identity.1": "My name is Rakesh, employee ID four four seven one, fraud prevention team, at your bank.",
+    "ask_identity.2": "I have already given you my name and employee ID. We are losing time, and the payment is still pending.",
+    "ask_location.1": "I am calling from the fraud prevention team at your bank's head office. Your account has been flagged in our system, which is why I am calling you.",
+    "ask_location.2": "I cannot give out the office address over the phone. The details of our fraud cases are confidential.",
+    "ask_proof.1": "I understand you want proof. You can check the alert in your banking app once we confirm it. Right now we need to stop the payment first.",
+    "ask_proof.2": "I have given you my name and employee ID. If you keep refusing, the payment will go through, and the bank will have a record that you declined to cancel it.",
+    "ask_info.1": "Yes, {name}. Your name and mobile number are on our system. That is how I reached you.",
+    "ask_info.2": "Your account details are on our system, including your mobile number, the last digits of your account and your address. Please do not worry about how we have them.",
+    "stall.1": "Please stay on the line, we are almost done. It will only take a minute.",
+    "stall.2": "I need you to stay on the line. Please do not make any other calls while we do this.",
+    "scared.1": "Please don't be scared. I am here to help you stop this payment. If you follow my steps, your money will be safe.",
+    "scared.2": "Take a deep breath. If you cooperate, we can stop this within a few minutes. I only need you to listen and do as I say."
+  },
+  "debrief": {
+    "summary": {
+      "win": "You did not share the OTP. Well done. Hanging up and calling your bank yourself was the right move.",
+      "lose": "You read out the OTP. In a real scam, that would approve the payment the caller had started. Do not worry. This was only practice, and now you know what to watch for.",
+      "idle": "The call went quiet and you did not share anything. Staying silent or hanging up is always better than going along with a caller like this.",
+      "win_passive": "You did not share the OTP, which is what matters most. But you also never clearly said no. Next time, say no, hang up, and call your bank yourself."
+    },
+    "worked": "This trick worked on you",
+    "resisted": "You did not fall for this one",
+    "tactics": {
+      "authority": {
+        "name": "Pretending to be from your bank",
+        "what": "The caller said they were from your bank's fraud prevention team, so that you would trust them and follow their steps without checking.",
+        "instead": "Hang up. Call your bank yourself, using the number on your card or in the official app, and ask about any debit you do not recognise."
+      },
+      "fear": {
+        "name": "Fear of losing your money",
+        "what": "They said a payment had just started and the money would be lost unless you acted at once.",
+        "instead": "Stay calm. Do not act on fear alone. Check the debit by calling your bank yourself, and talk to someone you trust first."
+      },
+      "secrecy": {
+        "name": "Do not tell anyone",
+        "what": "They told you not to discuss the call, not to call the bank and not to tell your family, so that nobody could check it with you.",
+        "instead": "Do the opposite. Tell a family member right away, and call your bank on its official number. Being asked to keep a call secret is a warning sign."
+      },
+      "urgency": {
+        "name": "Artificial deadlines",
+        "what": "The caller said the payment would go through within minutes, so you would not have time to check.",
+        "instead": "Slow down. Hang up if you feel rushed, and call your bank yourself on its official number before doing anything else."
+      },
+      "credential_request": {
+        "name": "Asking for your OTP",
+        "what": "The caller wanted you to read out the OTP that came to your phone, saying it would stop the payment. An OTP is used to approve a transaction, so reading it out can approve the payment instead.",
+        "instead": "Never share an OTP, PIN, CVV or password with anyone, including someone who says they are from your bank."
+      },
+      "false_help": {
+        "name": "The \"I am here to help you\" trick",
+        "what": "After alarming you, the caller turned friendly and said they only wanted to stop the payment, so you would trust them and follow their steps.",
+        "instead": "When someone who just alarmed you offers help, be more careful, not less. Hang up and call your bank yourself on its official number."
+      }
+    },
+    "facts": ["Your bank and the RBI will never ask you for an OTP, PIN, CVV or password.", "An OTP is used to approve a transaction. Reading it out to a caller can approve a payment instead of stopping it.", "If you see a debit you do not recognise, call your bank yourself using the number on your card or in the official app, not a number the caller gives you.", "Scammers often already know your name and the last digits of your account, because personal data leaks. A caller knowing them proves nothing."],
+    "help": "If this ever happens for real, hang up, call your bank on the number on your card or in its official app, and report it at cybercrime.gov.in or on 1930. Tell your family first.",
+    "helpline": "1930",
+    "disclaimer": "This was a simulation. Nobody called you, and no real information was used."
+  }
+}
