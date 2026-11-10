@@ -92,6 +92,73 @@ Recommended order from `docs/SCAM_PLAYBOOKS.md`: **2. suspicious transaction** (
 - Public deployment: set `INVITE_CODE`, keep `MAX_TURNS` / `MAX_SESSIONS_PER_HOUR`, put the key in host secrets, never in the image. See `Dockerfile` (audio must be pre-rendered before building).
 
 ## 7. Open items for the team
-- Deploy somewhere public (Dockerfile targets port 7860, e.g. Hugging Face Spaces) and test on a phone (mic needs HTTPS or `localhost`).
+- Deploy somewhere public and test on a phone (mic needs HTTPS or `localhost`). Steps for Hugging Face Spaces and Vercel are in section 8.
 - Demo video, written explanation, LinkedIn/X post (see section 1).
 - Native-speaker review of Hindi/Bengali lines; verify the `UNVERIFIED` rows in `docs/SOURCES.md`.
+
+## 8. Deploying
+
+**Status: neither route below has been run yet. The steps are written from how these platforms normally work, so treat them as a checklist to confirm, not a tested recipe.** Challenge deadline is Tue 10 Nov 2026, 11:59 PM IST, so pick the Spaces route unless there is a strong reason not to.
+
+### Why a container host, not serverless
+The app keeps call sessions in memory (`SESSIONS` in `backend/app.py`), needs ffmpeg, writes custom-name clips to `audio/_live/` while running, and serves about 45 MB of pre-rendered clips. One always-on container runs all of that unchanged. Serverless platforms do not.
+
+### A. Hugging Face Spaces (Docker Space). Recommended
+The `Dockerfile` already installs ffmpeg and listens on port 7860, which is the Spaces default.
+
+Before you start:
+- A Hugging Face account and a write access token (Settings > Access Tokens).
+- Render the clips locally: `python scripts/prerender.py`. `audio/` is git-ignored and the Dockerfile does `COPY audio ./audio`, so the clips must be in what you push.
+
+Steps:
+1. Go to huggingface.co/new-space. Pick a name, set SDK to **Docker** (blank template) and free CPU hardware.
+2. In the Space, open Settings > Variables and secrets and add:
+   - secret `GNANI_API_KEY` (your Gnani key, never commit it)
+   - secret `INVITE_CODE` (stops strangers spending Gnani credits; share it only with judges and testers)
+   - variables `MAX_SESSIONS_PER_HOUR=200` and `MAX_TURNS=30`
+   - do not set `ALLOW_TEXT_TURN`
+3. A Space is its own git repo. Build a deploy branch that contains the clips and the Space front matter, and keep it off `main`:
+   ```
+   git checkout -b hf-deploy
+   rm -rf audio/_live                  # per-session leftovers, not needed
+   git add -f audio                    # audio/ is ignored on main, force-add it on this branch only
+   ```
+   Add this block as the very first lines of `README.md` on this branch (Spaces reads its settings from it):
+   ```
+   ---
+   title: Scam Call Simulator
+   sdk: docker
+   app_port: 7860
+   ---
+   ```
+   Then commit and push to the Space (use your Hugging Face username and the access token as the password):
+   ```
+   git commit -am "Space deploy"
+   git remote add space https://huggingface.co/spaces/<user>/<space-name>
+   git push space hf-deploy:main -f
+   ```
+   (`-f` is needed because a new Space already has its own starter commit.)
+4. The Space builds the Dockerfile by itself; watch the Logs tab. When it says Running, open `https://<user>-<space-name>.hf.space` (the direct URL, not the embedded page on huggingface.co). It is HTTPS, so the microphone works on phones.
+5. To redeploy: `git checkout hf-deploy && git rebase main && git push space hf-deploy:main -f` (the Space repo has its own history, so a forced push of this branch is normal here).
+
+Known catches to check:
+- **Writable folder.** Spaces run the container as a non-root user, but the app writes custom-name clips to `/app/audio/_live`. If that folder is not writable, the app silently falls back to the default name, so custom names will not work. The likely fix is in the `Dockerfile`, before `CMD`: `RUN useradd -m -u 1000 user && mkdir -p /app/audio/_live && chown -R user /app` then `USER user`.
+- **Sleeping and restarts.** Free Spaces can sleep when idle, and a restart wipes in-memory sessions (a call in progress would fail). Open the app just before recording the demo and expect a slow first load.
+- **One instance only.** Keep a single replica; sessions live in that process's memory.
+- **Push size.** The clips are about 45 MB (largest about 1 MB each). If the push is rejected for file size, run `git lfs track "*.wav"` on the deploy branch and commit again.
+
+Other container hosts (Render, Railway, Fly.io) work the same way: create a web service from the GitHub repo using the `Dockerfile`, add the same env vars, and get the clips into the build (same deploy-branch trick, or run `prerender.py` during the build with the key available).
+
+### B. Vercel. Not recommended
+Vercel runs the app as short-lived serverless functions. As the code stands, four things break:
+1. **Sessions vanish.** Requests can land on different instances, so a turn often hits one that has never seen the call and returns 404 "session not found". You would need an external store (for example Upstash Redis) or call state carried in a signed token.
+2. **No ffmpeg.** The `imageio-ffmpeg` fallback in `backend/config.py` might work, but the bundled binary is large against the function size limit (about 250 MB unzipped).
+3. **Audio files.** The clips are git-ignored and must be committed and included in the deploy. The live custom-name clips are written to disk at runtime, and Vercel's disk is read-only apart from `/tmp` and not shared between instances, so that feature would need blob storage.
+4. **Timeouts and rate limit.** Custom-name rendering takes about 6 seconds and speech-to-text takes time too, so check your plan's function time limit. The hourly session cap (`_session_starts`) is per instance, so it would not hold.
+
+If you still want to try it:
+1. Add a root `app.py` containing `from backend.app import app` so Vercel finds the FastAPI app.
+2. Fix the four problems above.
+3. At vercel.com/new, import the GitHub repo.
+4. Under Settings > Environment Variables set `GNANI_API_KEY` and `INVITE_CODE` (never commit the key).
+5. Deploy. HTTPS is automatic, so the microphone works on phones.
