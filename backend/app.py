@@ -66,11 +66,16 @@ def _public_debrief(s: engine.Session, deb: Optional[dict]) -> Optional[dict]:
 @app.get("/api/config")
 def get_config():
     langs = engine.list_languages()
+    scenario = "digital_arrest"
     return {
         "languages": [{"code": c, "name": l["name"], "review_status": l.get("review_status", ""), "ui": l["ui"],
-                       "persona": l["persona"]}
+                       "persona": l["persona"],
+                       # the tricks scam callers use, in this language (names only; the debrief has the detail)
+                       "tricks": [{"id": tid, "name": tx["name"]}
+                                  for tid, tx in engine.load_lines(scenario, c)["debrief"]["tactics"].items()]}
                       for c, l in langs.items()],
-        "scenarios": [{"id": "digital_arrest", "title": "Digital arrest call"}],
+        "scenarios": [{"id": scenario, "title": "Digital arrest call"}],
+        "helpline": engine.load_lines(scenario, "en")["debrief"].get("helpline", ""),
         "invite_required": bool(config.INVITE_CODE),
         "allow_text": config.ALLOW_TEXT_TURN,
     }

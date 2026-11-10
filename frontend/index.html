@@ -9,6 +9,8 @@
   :root {
     --bg: #f6f7f9; --card: #ffffff; --ink: #14181f; --muted: #5b6574; --line: #dde1e7;
     --accent: #1f6feb; --good: #1a7f37; --bad: #c62828; --warn: #b35900; --call: #1b2330; --callink: #f2f5f9;
+    --font-head: Georgia, "Iowan Old Style", "Palatino Linotype", "Noto Serif", "Noto Serif Devanagari", "Noto Serif Bengali", serif;
+    --font-num: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Roboto Mono", monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -18,7 +20,9 @@
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Devanagari", "Noto Sans Bengali", sans-serif; }
-  main { max-width: 560px; margin: 0 auto; padding: 20px 16px 48px; }
+  main { max-width: 1040px; margin: 0 auto; padding: 18px 16px 48px; }
+  #callScreen { max-width: 560px; margin: 0 auto; }      /* the call stays a narrow phone screen */
+  h1, h2, .headline, .brand { font-family: var(--font-head); }
   h1 { font-size: 1.5rem; margin: 8px 0 4px; }
   h2 { font-size: 1.15rem; margin: 24px 0 8px; }
   p { margin: 6px 0; }
@@ -46,9 +50,12 @@
   .hang { background: #d93025; color: #fff; }
   .mic:disabled { opacity: .45; cursor: not-allowed; }
   @keyframes pulse { 50% { opacity: .75; } }
-  @media (prefers-reduced-motion: reduce) { .mic.rec { animation: none; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading { text-align: center; padding: 14px 0 6px; }
+  .spinner { width: 38px; height: 38px; margin: 0 auto 10px; border: 4px solid rgba(255,255,255,.25); border-top-color: #fff; border-radius: 50%; animation: spin .9s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { .mic.rec { animation: none; } .spinner { animation-duration: 3s; } }
   .otp { background: #fff; color: #14181f; border-radius: 12px; padding: 10px 14px; margin-top: 14px; text-align: center; }
-  .otp .code { font-size: 2rem; letter-spacing: .25em; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .otp .code { font-family: var(--font-num); font-size: 2rem; letter-spacing: .25em; font-weight: 800; font-variant-numeric: tabular-nums; }
   .otp small { color: #5b6574; display: block; }
   .log { list-style: none; padding: 0; margin: 14px 0 0; max-height: 220px; overflow-y: auto; }
   .log li { margin: 6px 0; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.07); font-size: .95rem; }
@@ -69,32 +76,91 @@
   .instead { font-weight: 600; }
   .help { background: var(--accent); color: #fff; border-radius: 12px; padding: 12px 14px; font-weight: 600; }
   .err { color: var(--bad); font-weight: 600; }
+  .score .headline { margin: 0 0 10px; }
+  .scorerow { display: flex; align-items: baseline; gap: 10px; }
+  .scorenum { font-family: var(--font-num); font-size: 2.4rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+  .dots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; }
+  .dot.resisted { background: var(--good); } .dot.worked { background: var(--bad); }
+  .helpcard { background: var(--accent); color: #fff; border-radius: 14px; padding: 14px 16px; margin: 14px 0; text-align: center; }
+  .helpcard small { display: block; font-weight: 600; opacity: .95; }
+  .helpcard a.num { display: inline-block; color: #fff; font-family: var(--font-num); font-size: 2.8rem; font-weight: 800; letter-spacing: .06em; line-height: 1.15; text-decoration: none; border-bottom: 3px solid rgba(255,255,255,.55); margin: 2px 0 6px; }
+  .helpcard p { margin: 6px 0 0; font-weight: 600; font-size: .95rem; }
+  .goodtoknow h2 { margin-top: 18px; }
+  .goodtoknow ul { padding-left: 20px; margin: 6px 0; }
+  .goodtoknow li { margin: 6px 0; }
+  details.report { margin: 14px 0; }
+  details.report > summary { list-style: none; cursor: pointer; text-align: center; font-weight: 600; border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; min-height: 48px; background: var(--card); }
+  details.report > summary::-webkit-details-marker { display: none; }
+  details.report > summary::after { content: ""; display: inline-block; width: 8px; height: 8px; margin-left: 10px; position: relative; top: -3px;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+  details.report[open] > summary::after { top: 2px; transform: rotate(-135deg); }
+  details.report > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* app header (landing + ending only; the call screen has none, so it feels like a real call) */
+  .appbar { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line); }
+  .appbar-in { max-width: 1040px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 1.15rem; font-weight: 700; }
+  .logo { width: 28px; height: 28px; flex: none; color: var(--accent); }
+  .langwrap select { width: auto; padding: 8px 10px; font-size: .95rem; }
+  .on-debrief .langwrap { display: none; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* landing + ending share one layout: main column + side column (stacked, in reading order, on phones) */
+  .lead { font-size: 1.05rem; max-width: 62ch; margin: 6px 0 14px; }
+  .layout, .dgrid { display: flex; flex-direction: column; gap: 16px; }
+  .col-main, .col-side { display: contents; }
+  .layout .card, .dgrid .card, .layout .helpcard, .dgrid .helpcard, .dgrid details.report { margin: 0; }
+  @media (min-width: 820px) {
+    .layout, .dgrid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+    .col-main, .col-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .col-side { position: sticky; top: 76px; }
+  }
+  .sidecard h2 { margin: 0 0 10px; font-size: 1.05rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: .9rem; background: var(--bg); }
+  .chip .dot { width: 10px; height: 10px; flex: none; }
+  .chip.worked { border-color: var(--bad); } .chip.resisted { border-color: var(--good); } .chip.unused { opacity: .7; }
+  .dot.unused { background: var(--line); }
+  .pagetitle { margin: 4px 0 14px; font-size: 1.5rem; }
 </style>
 </head>
 <body>
+<header class="appbar" id="appbar">
+  <div class="appbar-in">
+    <h1 class="brand">
+      <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3z"/><path d="M12 7.5v5.2M12 16h.01" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+      <span id="t-title">Scam Call Simulator</span>
+    </h1>
+    <div class="langwrap"><label for="lang" id="t-lang" class="sr">Language</label><select id="lang"></select></div>
+  </div>
+</header>
 <main>
-  <!-- 1. setup -->
+  <!-- 1. landing -->
   <section id="setup">
-    <h1 id="t-title">Scam Call Simulator</h1>
-    <p class="muted" id="t-tagline"></p>
-    <div class="card">
-      <label for="lang" id="t-lang">Language</label>
-      <select id="lang"></select>
-      <div class="persona">
-        <p><b id="t-persona-title"></b></p>
-        <p id="t-persona-text"></p>
-        <label for="nick" id="t-nick" style="font-weight:500"></label>
-        <input id="nick" type="text" maxlength="20" autocomplete="off">
-        <p class="muted" id="t-nick-hint" style="font-size:.85rem"></p>
+    <p class="lead muted"><span id="t-tagline"></span> <span id="t-privacy"></span></p>
+    <div class="layout">
+      <div class="col-main">
+        <div class="card">
+          <div class="persona" style="margin-top:0">
+            <p><b id="t-persona-title"></b></p>
+            <p id="t-persona-text"></p>
+            <label for="nick" id="t-nick" style="font-weight:500"></label>
+            <input id="nick" type="text" maxlength="20" autocomplete="off">
+            <p class="muted" id="t-nick-hint" style="font-size:.85rem"></p>
+          </div>
+          <div id="inviteRow" class="hidden">
+            <label for="invite">Invite code</label>
+            <input id="invite" type="text" autocomplete="off">
+          </div>
+          <button class="primary" id="start" style="margin-top:14px"></button>
+        </div>
       </div>
-      <div id="inviteRow" class="hidden">
-        <label for="invite">Invite code</label>
-        <input id="invite" type="text" autocomplete="off">
+      <div class="col-side">
+        <div id="landHelp" class="helpcard"></div>
+        <div class="card sidecard"><h2 id="t-tricks"></h2><div class="chips" id="landTricks"></div></div>
       </div>
-      <p class="muted" id="reviewNote" style="font-size:.85rem"></p>
-      <button class="primary" id="start" style="margin-top:14px"></button>
     </div>
-    <p class="muted" style="font-size:.9rem">Everything here is a simulation with pre-recorded lines and a practice OTP. No real calls are made and nothing you say is stored.</p>
   </section>
 
   <!-- 2. call -->
@@ -102,6 +168,7 @@
     <div class="call">
       <div class="banner" id="banner"></div>
       <div class="who"><div class="name" id="callerName"></div><div class="status" id="status"></div></div>
+      <div class="loading hidden" id="loading" role="status" aria-live="polite"><div class="spinner" aria-hidden="true"></div><p id="loadingText"></p></div>
       <button class="answer hidden" id="answer"></button>
       <p class="err" id="err" role="alert"></p>
       <div id="inCall" class="hidden">
@@ -143,6 +210,7 @@ function applyUI() {
   $("t-lang").textContent = ui.choose_language; $("start").textContent = ui.answer;
   $("banner").textContent = ui.banner; $("callerName").textContent = ui.unknown_caller;
   $("answer").textContent = ui.answer; $("hang").textContent = ui.hang_up;
+  $("loadingText").textContent = ui.preparing || "Getting the call ready...";
   $("otpLabel").textContent = ui.otp_label; $("otpHint").textContent = ui.otp_hint;
   $("devText").placeholder = ui.type_placeholder; $("devSend").textContent = ui.send;
   $("mic").textContent = ui.tap_speak;
@@ -150,8 +218,37 @@ function applyUI() {
   $("t-persona-title").textContent = ui.persona_title;
   $("t-persona-text").textContent = ui.persona_text.replace("{name}", p.name).replace("{last4}", p.last4);
   $("t-nick").textContent = ui.nickname_label; $("t-nick-hint").textContent = ui.nickname_hint;
-  $("reviewNote").textContent = (l.code !== "en" && /draft/i.test(l.review_status || "")) ? "Translation: " + l.review_status : "";
   document.title = ui.title;
+  renderLanding();
+}
+
+function helpCard(host, text) {
+  host.replaceChildren();
+  if (cfg.helpline) {
+    host.append(el("small", "", ui.helpline_label));
+    const num = el("a", "num", cfg.helpline); num.href = "tel:" + cfg.helpline; host.append(num);
+  }
+  host.append(el("p", "", text));
+  return host;
+}
+
+function trickChips(host, status) {          // status: {trickId: "worked" | "resisted"}; omitted on the landing page
+  host.replaceChildren();
+  const l = cfg.languages.find(x => x.code === lang);
+  ((l && l.tricks) || []).forEach(tr => {
+    const st = status ? (status[tr.id] || "unused") : "";
+    const chip = el("span", "chip " + st);
+    if (status) chip.append(el("span", "dot " + st));
+    chip.append(document.createTextNode(tr.name));
+    host.append(chip);
+  });
+}
+
+function renderLanding() {
+  $("t-privacy").textContent = ui.privacy || "";
+  $("t-tricks").textContent = ui.tricks_common || "";
+  helpCard($("landHelp"), "cybercrime.gov.in");
+  trickChips($("landTricks"), null);
 }
 
 async function init() {
@@ -166,15 +263,17 @@ async function init() {
   applyUI();
   $("start").onclick = async () => {
     invite = $("invite").value.trim();
-    $("setup").classList.add("hidden"); $("callScreen").classList.remove("hidden");
-    $("status").textContent = ui.incoming;
+    $("setup").classList.add("hidden"); $("appbar").classList.add("hidden"); $("callScreen").classList.remove("hidden");
+    $("status").textContent = ""; $("loading").classList.remove("hidden");     // a custom name takes a few seconds to prepare
     try {
       const r = await fetch("/api/session", {method: "POST", headers: {"Content-Type": "application/json", "X-Invite-Code": invite},
         body: JSON.stringify({language: lang, scenario: "digital_arrest", nickname: $("nick").value.trim()})});
       if (!r.ok) throw new Error((await r.json()).detail || r.status);
       const body = await r.json(); sid = body.session_id; firstReply = body.reply;
+      $("loading").classList.add("hidden"); $("status").textContent = ui.incoming;
       $("answer").classList.remove("hidden");
     } catch (e) {
+      $("loading").classList.add("hidden");
       showError(ui.error + " (" + e.message + ")");
       const again = el("button", "ghost", ui.again); again.style.color = "#fff"; again.onclick = () => location.reload();
       $("callScreen").querySelector(".call").append(again);
@@ -289,24 +388,43 @@ function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.
 function finish(d) {
   ended = true; clearTimeout(silenceTimer);
   $("callScreen").classList.add("hidden");
+  $("appbar").classList.remove("hidden"); $("appbar").classList.add("on-debrief");
   const box = $("debrief"); box.replaceChildren(); box.classList.remove("hidden");
-  box.append(el("h1", "", ui.debrief_title));
-  const card = el("div", "card"); card.append(el("p", "headline " + d.outcome, d.summary)); box.append(card);
+  box.append(el("h2", "pagetitle", ui.debrief_title));
+  const grid = el("div", "dgrid"), mainCol = el("div", "col-main"), side = el("div", "col-side");
+  const put = (col, node, order) => { node.style.order = order; col.append(node); return node; };   // order = reading order on phones
 
-  box.append(el("h2", "", ui.tactics_title));
-  d.tactics.forEach(t => {
-    const c = el("div", "tactic " + (t.worked ? "worked" : "resisted"));
-    c.append(el("span", "tag", t.worked ? d.labels.worked : d.labels.resisted));
-    c.append(el("div", "", t.name)); c.lastChild.style.fontWeight = "700";
-    c.append(el("p", "muted", t.what)); c.append(el("p", "instead", t.instead));
-    box.append(c);
-  });
+  // 1. the verdict and an at-a-glance score: how many of the caller's tricks did not work
+  const total = d.tactics.length, resisted = d.tactics.filter(x => !x.worked).length;
+  const card = el("div", "card score");
+  card.append(el("p", "headline " + d.outcome, d.summary));
+  if (total) {
+    const row = el("div", "scorerow");
+    row.append(el("span", "scorenum", resisted + " / " + total), el("span", "muted", ui.score_caption));
+    const dots = el("div", "dots"); dots.setAttribute("role", "img"); dots.setAttribute("aria-label", resisted + " / " + total);
+    d.tactics.slice().sort((a, b) => a.worked - b.worked).forEach(x => dots.append(el("span", "dot " + (x.worked ? "worked" : "resisted"))));
+    card.append(row, dots);
+  }
+  put(mainCol, card, 1);
 
-  box.append(el("h2", "", ui.facts_title));
-  const ul = el("ul"); d.facts.forEach(f => ul.append(el("li", "", f))); box.append(ul);
-  box.append(el("p", "help", d.help));
-  box.append(el("p", "muted", d.disclaimer));
+  // 2. the helpline: big, tap to call, in the side column
+  put(side, helpCard(el("div", "helpcard"), d.help), 2);
 
+  // 3. good to know
+  const know = el("div", "goodtoknow");
+  know.append(el("h2", "", ui.facts_title));
+  const ul = el("ul"); d.facts.forEach(f => ul.append(el("li", "", f))); know.append(ul);
+  put(mainCol, know, 3);
+
+  // 4. every trick scam callers use, marked by what happened in this call
+  const status = {}; d.tactics.forEach(x => { status[x.id] = x.worked ? "worked" : "resisted"; });
+  const tricks = el("div", "card sidecard"); tricks.append(el("h2", "", ui.tricks_common));
+  const chips = el("div", "chips"); trickChips(chips, status);
+  chips.querySelectorAll(".chip.worked").forEach(c => c.title = d.labels.worked);
+  chips.querySelectorAll(".chip.resisted").forEach(c => c.title = d.labels.resisted);
+  tricks.append(chips); put(side, tricks, 4);
+
+  // 5. actions
   const row = el("div", "controls");
   if (d.audio && d.audio.length) {
     const play = el("button", "ghost", ui.play_debrief);
@@ -314,7 +432,23 @@ function finish(d) {
     row.append(play);
   }
   const again = el("button", "primary", ui.again); again.onclick = () => location.reload();
-  row.append(again); box.append(row);
+  row.append(again); put(mainCol, row, 5);
+
+  // 6. the detailed report, one click away
+  const det = el("details", "report");
+  det.append(el("summary", "", ui.details_button));
+  det.append(el("h2", "", ui.tactics_title));
+  d.tactics.forEach(x => {
+    const c = el("div", "tactic " + (x.worked ? "worked" : "resisted"));
+    c.append(el("span", "tag", x.worked ? d.labels.worked : d.labels.resisted));
+    c.append(el("div", "", x.name)); c.lastChild.style.fontWeight = "700";
+    c.append(el("p", "muted", x.what)); c.append(el("p", "instead", x.instead));
+    det.append(c);
+  });
+  put(mainCol, det, 6);
+
+  put(mainCol, el("p", "muted", d.disclaimer), 7);
+  grid.append(mainCol, side); box.append(grid);
   window.scrollTo(0, 0);
 }
 

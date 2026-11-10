@@ -3,15 +3,16 @@
   "title": "Digital arrest call",
   "start": "greet",
   "silence_limit": 2,
-  "interrupt_max_in_row": 3,
+  "interrupt_limits": {"question": 3, "stall": 2, "scared": 2},
   "unknown_retries": 1,
+  "unknown_min_words": 3,
   "clarify_limit": 1,
   "nodes": {
     "greet": {
       "tactics": ["authority"],
       "on": {
         "comply": "parcel",
-        "refuse": "reassure_doubt",
+        "refuse": "parcel",
         "confused": "@clarify",
         "unknown": "parcel",
         "default": "parcel"
@@ -20,17 +21,8 @@
     "parcel": {
       "tactics": ["fear", "authority"],
       "on": {
-        "comply": "reassure",
-        "refuse": "reassure_doubt",
-        "confused": "@clarify",
-        "default": "reassure"
-      }
-    },
-    "reassure": {
-      "tactics": ["false_help"],
-      "on": {
         "comply": "isolate",
-        "refuse": "reassure_doubt",
+        "refuse": "warn_station",
         "confused": "@clarify",
         "default": "isolate"
       }
@@ -39,7 +31,7 @@
       "tactics": ["secrecy", "false_help"],
       "on": {
         "comply": "verify",
-        "refuse": "reassure_doubt",
+        "refuse": "warn_station",
         "confused": "@clarify",
         "default": "verify"
       }
@@ -48,14 +40,25 @@
       "tactics": ["authority"],
       "on": {
         "comply": "otp_demand",
-        "refuse": "reassure_doubt",
+        "refuse": "warn_station",
         "confused": "@clarify",
         "default": "otp_demand"
       }
     },
-    "reassure_doubt": {
-      "tactics": ["false_help"],
-      "remember": true,
+    "warn_station": {
+      "tactics": ["fear", "authority"],
+      "max_visits": 1,
+      "on_exhausted": "warn_case",
+      "on": {
+        "comply": "@resume",
+        "refuse": "warn_case",
+        "confused": "@clarify",
+        "default": "@resume"
+      },
+      "remember": true
+    },
+    "warn_case": {
+      "tactics": ["fear", "urgency"],
       "max_visits": 1,
       "on_exhausted": "pushback",
       "on": {
@@ -63,7 +66,8 @@
         "refuse": "pushback",
         "confused": "@clarify",
         "default": "@resume"
-      }
+      },
+      "remember": true
     },
     "pushback": {
       "tactics": ["fear", "secrecy"],
@@ -83,7 +87,7 @@
         "comply": "@resume",
         "refuse": "end_win",
         "confused": "@clarify",
-        "default": "end_win"
+        "default": "@resume"
       },
       "remember": true
     },
@@ -142,15 +146,19 @@
   },
   "interrupts": {
     "ask_identity": {
+      "group": "question",
       "tactics": ["authority"]
     },
     "ask_location": {
+      "group": "question",
       "tactics": ["authority"]
     },
     "ask_proof": {
+      "group": "question",
       "tactics": ["authority", "urgency"]
     },
     "ask_info": {
+      "group": "question",
       "tactics": ["authority", "fear"]
     },
     "stall": {

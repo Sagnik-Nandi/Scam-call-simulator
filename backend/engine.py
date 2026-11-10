@@ -95,8 +95,8 @@ class Session:
     doubt_from: str = ""       # node where the user first doubted; the script resumes after it
     clarify_counts: dict = field(default_factory=dict)
     stalls: int = 0            # replies since the last step change that did not move the call forward
-    interrupts_in_row: int = 0
-    interrupt_counts: dict = field(default_factory=dict)
+    interrupt_counts: dict = field(default_factory=dict)   # per question type: which variant line to play next
+    group_counts: dict = field(default_factory=dict)       # per cap group, whole call: question / stall / scared
     unknown_in_row: int = 0
     extra_tactics: list = field(default_factory=list)   # tactics used by in-character answers to the user's questions
     custom: bool = False       # user typed their own practice name -> templated lines are rendered live
@@ -157,7 +157,6 @@ def step(s: Session, transcript: str) -> dict:
         if s.stalls >= graph.get("stall_limit", 6):
             intent = "refuse"
             s.silences = 0
-            s.interrupts_in_row = 0
         else:
             s.stalls += 1
 
@@ -176,12 +175,15 @@ def step(s: Session, transcript: str) -> dict:
         return _result(s, intent, leak, _reply(graph, lines, "generic.silence", s.node, s))
     s.silences = 0
 
-    # --- the user asked a question (who are you, where from, prove it, ...): answer in character, same node
+    # --- the user asked a question (who are you, where from, prove it, ...), stalled or said they are scared:
+    #     answer in character, same node. Each group has a cap for the WHOLE call (graph "interrupt_limits");
+    #     once it is used up, the next one counts as a refusal and the caller loses patience.
     interrupts = graph.get("interrupts", {})
     if intent in interrupts:
-        s.interrupts_in_row += 1
         s.unknown_in_row = 0
-        if s.interrupts_in_row <= graph.get("interrupt_max_in_row", 3):
+        group = interrupts[intent].get("group", intent)
+        s.group_counts[group] = s.group_counts.get(group, 0) + 1
+        if s.group_counts[group] <= graph.get("interrupt_limits", {}).get(group, 99):
             n = s.interrupt_counts[intent] = s.interrupt_counts.get(intent, 0) + 1
             variants = [k for k in lines["lines"] if k.startswith(intent + ".")]
             key = f"{intent}.{(n - 1) % len(variants) + 1}"
@@ -189,14 +191,13 @@ def step(s: Session, transcript: str) -> dict:
                 if tac not in s.extra_tactics:
                     s.extra_tactics.append(tac)
             return _result(s, intent, leak, _reply(graph, lines, key, s.node, s))
-        intent = "refuse"                  # too many questions in a row: the caller loses patience
-        s.interrupts_in_row = 0
-    else:
-        s.interrupts_in_row = 0
+        intent = "refuse"                  # over the cap: follows this step's refusal branch (pushback in the early script)
 
-    # --- nothing recognised: re-ask once instead of silently moving on
+    # --- nothing recognised. A real sentence we have no rule for is not "unclear": the caller just carries on with
+    #     the script. Only a very short or garbled reply is asked again, once ("Sorry, I did not catch that").
     if intent == "unknown":
-        if s.unknown_in_row < graph.get("unknown_retries", 1):
+        words = len((transcript or "").split())
+        if words < graph.get("unknown_min_words", 3) and s.unknown_in_row < graph.get("unknown_retries", 1):
             s.unknown_in_row += 1
             return _result(s, intent, leak, _reply(graph, lines, "generic.unknown", s.node, s))
     s.unknown_in_row = 0
@@ -211,6 +212,8 @@ def step(s: Session, transcript: str) -> dict:
                 key = f"{s.node}.clarify"
             elif node.get("show_otp") and "otp.clarify" in lines["lines"]:
                 key = "otp.clarify"
+            elif node.get("remember") and f"{s.doubt_from}.clarify" in lines["lines"]:
+                key = f"{s.doubt_from}.clarify"      # a warning/pressure step: recap the step that was interrupted
             else:
                 key = "generic.clarify"
             return _result(s, intent, leak, _reply(graph, lines, key, s.node, s))
@@ -218,7 +221,12 @@ def step(s: Session, transcript: str) -> dict:
 
     # --- go back to the step the user interrupted with a doubt
     if target == "@resume":
-        target = nodes[s.doubt_from or graph["start"]]["on"]["comply"]
+        # Proceed, don't replay: take the branch the interrupted step would have taken for this same kind of
+        # reply (agree -> its "comply" target, anything else -> its "default" target).
+        prev_on = nodes[s.doubt_from or graph["start"]]["on"]
+        target = prev_on.get("comply" if intent == "comply" else "default")
+        if not target or target.startswith("@"):
+            target = prev_on["comply"]
 
     # Follow on_exhausted redirects until we land on a node that still has visits left.
     while True:
@@ -278,7 +286,7 @@ def build_debrief(s: Session, graph: dict, lines: dict) -> dict:
         variant = "win_passive"
     audio = [f"debrief.{variant}"] + [f"debrief.tactic.{t['id']}" for t in tactics[:3]] + ["debrief.help"]
     return {"outcome": s.outcome, "variant": variant, "hung_up": s.hung_up, "summary": deb["summary"][variant],
-            "tactics": tactics, "facts": deb["facts"], "help": deb["help"],
+            "tactics": tactics, "facts": deb["facts"], "help": deb["help"], "helpline": deb.get("helpline", ""),
             "disclaimer": deb["disclaimer"], "audio_keys": audio,
             "labels": {"worked": deb["worked"], "resisted": deb["resisted"]}}
 

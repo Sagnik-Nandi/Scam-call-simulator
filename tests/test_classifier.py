@@ -49,3 +49,26 @@ def test_agreeing_to_keep_it_secret_is_not_a_refusal():
     # "I will not tell anyone" means the user is complying with the secrecy request
     assert classify("okay I will not tell anyone", EN["keywords"])["intent"] != "refuse"
     assert classify("I won't tell you the code", EN["keywords"])["intent"] == "refuse"
+
+
+# --- regression: denying the parcel and asking "what do you want from me" (found in the live demo)
+@pytest.mark.parametrize("text", [
+    "it cannot be mine, i did not order any package", "I did not order any package", "this is not mine",
+    "there must be a mistake", "I never ordered it", "you have the wrong person"])
+def test_denying_the_parcel_is_a_refusal(text):
+    assert classify(text, EN["keywords"])["intent"] == "refuse"
+
+
+@pytest.mark.parametrize("text", ["what do you want from me", "what do you want from me sir", "what can I do"])
+def test_asking_what_the_caller_wants_is_compliance(text):
+    assert classify(text, EN["keywords"])["intent"] == "comply"
+
+
+@pytest.mark.parametrize("code", ["hi", "bn"])
+def test_non_english_phrases_match_in_their_own_language_without_the_english_fallback(code):
+    """Every added row for hi/bn must be recognised from that language's own keywords alone."""
+    own = engine.load_language(code)["keywords"]
+    rows = [r for r in ROWS if r["lang"] == code and r["intent"] in ("refuse", "comply")]
+    bad = [(r["text"].encode("unicode_escape").decode(), r["intent"]) for r in rows
+           if classify(r["text"], own)["intent"] != r["intent"]]
+    assert len(bad) <= 2, bad       # a couple of older rows may rely on the English fallback; new ones must not

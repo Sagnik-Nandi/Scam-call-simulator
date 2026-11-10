@@ -58,7 +58,7 @@ Recommended order from `docs/SCAM_PLAYBOOKS.md`: **2. suspicious transaction** (
 | File | What to do |
 |---|---|
 | `scenarios/<new_id>/graph.json` | Copy `scenarios/digital_arrest/graph.json`. Keep node/interrupt structure; change `id`, `title`, node names, `tactics` per node, and `on` branch targets. Exactly one node has `show_otp` (where the OTP is demanded) and terminal nodes have `"terminal": "win"` or `"lose"`. |
-| `scenarios/<new_id>/lines/en.json` (+ `hi.json`, `bn.json`) | Same keys as the graph nodes plus the generic ones (`generic.silence`, `generic.unknown`, `generic.clarify`, `otp.clarify`, interrupt variants like `ask_identity.1`/`.2`, `debrief.*`, `end_win`, `end_lose`). Include the `debrief` block (summary, worked, resisted, tactics, facts, help, disclaimer). Copy `digital_arrest/lines/en.json` as a template, keep every key. |
+| `scenarios/<new_id>/lines/en.json` (+ `hi.json`, `bn.json`) | Same keys as the graph nodes plus the generic ones (`generic.silence`, `generic.unknown`, `generic.clarify`, `otp.clarify`, per-step recaps `<node>.clarify`, interrupt variants like `ask_identity.1`/`.2`, `debrief.*`, `end_win`, `end_lose`). Include the `debrief` block (summary, worked, resisted, tactics, facts, help, disclaimer). Copy `digital_arrest/lines/en.json` as a template, keep every key. |
 
 ### Files to modify
 | File | Change |

@@ -15,9 +15,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 LABELS = {"comply": "agree", "refuse": "refuse / doubt", "default": "no match", "leak": "says the OTP", "unknown": "no match"}
-SOFT = {"greet", "parcel", "reassure", "isolate", "verify", "reassure_doubt"}
+SOFT = {"greet", "parcel", "isolate", "verify"}
 OTP = {"otp_demand", "otp_soft"}
-PRESSURE = {"pushback", "final_early", "otp_pressure", "final_warning"}
+PRESSURE = {"warn_station", "warn_case", "pushback", "final_early", "otp_pressure", "final_warning"}
 
 
 def style(nid, node):
@@ -49,7 +49,7 @@ def build_dot(graph):
         if "terminal" in n:
             label = nid.replace("end_", "END: ")
         out.append('  %s [label="%s" %s];' % (nid, label, style(nid, n)))
-    out.append('  RESUME [label="back to the step\\nthe user interrupted\\n(RESUME)" shape=diamond fillcolor="#e9ecef" fontsize=10];')
+    out.append('  RESUME [label="PROCEED\\nthe step that would have\\nfollowed the interrupted one\\n(agree / no match)" shape=diamond fillcolor="#e9ecef" fontsize=10];')
     out.append('  start [label="call starts" shape=plaintext style=""]; start -> %s;' % graph["start"])
 
     for nid, n in nodes.items():
@@ -76,14 +76,26 @@ def build_dot(graph):
         if n.get("max_visits") and n.get("on_exhausted"):
             out.append('  %s -> %s [label="already used" style=dotted color="#b35900" fontcolor="#b35900"];' % (nid, n["on_exhausted"]))
 
-    out.append('  RESUME -> verify [style=invis];')   # keeps the diamond near the middle; real target depends on the step
-    inter = ", ".join(graph.get("interrupts", {}))
-    out.append('  notes [shape=note fillcolor="#f1f3f5" fontsize=10 label="On any step (the step does not change):\\l'
-               ' - confused reply: the caller explains again, same step\\l'
-               ' - question (%s):\\l   an in-character answer; 3 in a row = counted as a refusal\\l'
-               ' - unrecognised reply: asked once more, then the default branch\\l'
-               ' - silence twice in a row: call ends (idle)\\l'
-               ' - hang up: call ends (win)\\l"];' % inter.replace("_", " "))
+    soft_next = sorted({n["on"]["comply"] for nid, n in nodes.items()          # where PROCEED can land
+                        if nid in SOFT and n["on"].get("comply") in nodes}, key=list(nodes).index)
+    for target in soft_next:
+        out.append('  RESUME -> %s [style=dashed color="#555555"];' % target)
+    lim = graph.get("interrupt_limits", {})
+    clar, unk, sil = (graph.get("clarify_limit", 2), graph.get("unknown_retries", 1), graph.get("silence_limit", 2))
+    words = graph.get("unknown_min_words", 3)
+    qs = ", ".join(k for k, v in graph.get("interrupts", {}).items() if v.get("group") == "question").replace("_", " ")
+    L = "\\l"
+    out.append('  notes [shape=note fillcolor="#f1f3f5" fontsize=10 label="Replies that do not follow the normal branches:' + L +
+               ' - confused: the caller explains the same step (up to %d time%s);' % (clar, "" if clar == 1 else "s") + L +
+               '   asking again counts as a refusal and the call moves on' + L +
+               ' - question (%s):' % qs + L +
+               '   answered in character, same step; at most %d in the whole call' % lim.get("question", 3) + L +
+               ' - stall (wait / hold on): at most %d answers; scared: at most %d answers' % (lim.get("stall", 2), lim.get("scared", 2)) + L +
+               '   going over any of these caps counts as a refusal (pushback in the early script)' + L +
+               ' - unrecognised, %d+ words: not asked again, the caller carries on (no-match branch)' % words + L +
+               ' - unrecognised, shorter: asks Sorry, I did not catch that (up to %d time%s), then the no-match branch' % (unk, "" if unk == 1 else "s") + L +
+               ' - silence %d times in a row: call ends (idle); any speech resets the count' % sil + L +
+               ' - hang up, at any step: call ends (win)' + L + '"];')
     out.append("}")
     return "\n".join(out)
 
