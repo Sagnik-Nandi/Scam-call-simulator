@@ -1,5 +1,7 @@
 # Scam Call Simulator
 
+**Live Demo:** [https://scam-call-simulator.onrender.com/](https://scam-call-simulator.onrender.com/)
+
 A safe rehearsal of two common scam calls in Hindi, Bengali and English: a "digital arrest" call and a fake bank "suspicious transaction" call. You talk back by voice. The "caller" is a set of fixed pre-rendered lines chosen by a rule-based call graph. No model writes live dialogue. Built on Gnani Prisma (speech to text) and Timbre (text to speech). Project background: `docs/gnani-challenge-ideas.md`.
 
 **Running the demo, deploying, and submitting:** see `HOW_TO_SUBMIT.md`. The submission text is in `SUBMISSION.md`.

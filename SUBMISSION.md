@@ -55,14 +55,14 @@ Under the hood, Gnani Prisma transcribes each reply and Gnani Timbre renders the
 
 This is a simulation. The caller is scripted, the OTP is random, and all data is synthetic. Hindi and Bengali lines are still awaiting native review.
 
-Try it: [demo link]
-Code: [repo link]
+Try it: https://scam-call-simulator.onrender.com/
+Code: https://github.com/rajatdas-cs/Scam-call-simulator
 
 #GreatIndianAIInternshipChallenge #GnaniAI
 
 ### X / Twitter draft
 
-Built a scam-call simulator for the #GreatIndianAIInternshipChallenge #GnaniAI with @Gnani AI. Talk back to a scripted "digital arrest" call, or read the fake OTP and see the debrief. Simulation, synthetic data. [demo link] [repo link]
+Built a scam-call simulator for the #GreatIndianAIInternshipChallenge #GnaniAI with @Gnani AI. Talk back to a scripted "digital arrest" call, or read the fake OTP and see the debrief. Simulation, synthetic data. https://scam-call-simulator.onrender.com/ https://github.com/rajatdas-cs/Scam-call-simulator
 
 ## 5. Final checklist (in order)
 
